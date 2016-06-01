@@ -14,7 +14,7 @@ URxvt.perl-ext-common: default,clipboard
 URxvt.scrollBar: false
 
 !! Cursor
-URxvt.cursorUnderline: false
+URxvt.cursorUnderline: true
 URxvt.cursorBlink: true
 
 
@@ -56,42 +56,102 @@ URxvt.cursorBlink: true
 #define S_cyan          #2aa198
 #define S_green         #859900
 
-*background:            S_base03
-*foreground:            S_base00
-*fading:                40
-*fadeColor:             S_base03
+//*background:            S_base03
+//*foreground:            S_base00
+//*fading:                40
+//*fadeColor:             S_base03
 *cursorColor:           S_base1
-*pointerColorBackground:S_base01
-*pointerColorForeground:S_base1
+//*pointerColorBackground:S_base01
+//*pointerColorForeground:S_base1
+//
+//!! black dark/light
+//*color0:                S_base02
+//*color8:                S_base03
+//
+//!! red dark/light
+//*color1:                S_red
+//*color9:                S_orange
+//
+//!! green dark/light
+//*color2:                S_green
+//*color10:               S_base01
+//
+//!! yellow dark/light
+//*color3:                S_yellow
+//*color11:               S_base00
+//
+//!! blue dark/light
+//*color4:                S_blue
+//*color12:               S_base0
+//
+//!! magenta dark/light
+//*color5:                S_magenta
+//*color13:               S_violet
+//
+//!! cyan dark/light
+//*color6:                S_cyan
+//*color14:               S_base1
+//
+//!! white dark/light
+//*color7:                S_base2
+//*color15:               S_base3
 
-!! black dark/light
-*color0:                S_base02
-*color8:                S_base03
-
-!! red dark/light
-*color1:                S_red
-*color9:                S_orange
-
-!! green dark/light
-*color2:                S_green
-*color10:               S_base01
-
-!! yellow dark/light
-*color3:                S_yellow
-*color11:               S_base00
-
-!! blue dark/light
-*color4:                S_blue
-*color12:               S_base0
-
-!! magenta dark/light
-*color5:                S_magenta
-*color13:               S_violet
-
-!! cyan dark/light
-*color6:                S_cyan
-*color14:               S_base1
-
-!! white dark/light
-*color7:                S_base2
-*color15:               S_base3
+!! Arc Theme colors
+ *.cursorColor:  #b3bdcb
+ *.background: #404552
+ *.foreground: #b3bdcb
+ !! Black + DarkGrey
+ *.color0:  #404552
+ *.color8:  #2a303b
+ !! DarkRed + Red
+ *.color1:  #cc575d
+ *.color9:  #a3464a
+ !! DarkGreen + Green
+ *.color2:  #2679db
+ *.color10: #75a9e8
+ !! DarkYellow + Yellow
+ *.color3:  #b3bdcb
+ *.color11: #CAD1DB
+ !! DarkBlue + Blue
+ *.color4:  #5294e2
+ *.color12: #97bfee
+ !! DarkMagenta + Magenta
+ *.color5:  #404552
+ *.color13: #686d79
+ !! DarkCyan + Cyan
+ *.color6:  #b3bdcb
+ *.color14: #383c4a
+ !! LightGrey + White
+ *.color7:  #E1E5EA
+ *.color15: #ffffff
+ !! for 256 color stuff
+ *.color24:  #076678
+ *.color66:  #427b58
+ *.color88:  #9d0006
+ *.color96:  #8f3f71
+ *.color100: #79740e
+ *.color108: #8ec07c
+ *.color109: #83a598
+ *.color130: #af3a03
+ *.color136: #b57614
+ *.color142: #b8bb26
+ *.color167: #fb4934
+ *.color175: #d3869b
+ *.color208: #fe8019
+ *.color214: #fabd2f
+ *.color223: #ebdbb2
+ *.color228: #f4e8ba
+ *.color229: #fdf4c1
+ *.color230: #ffffc8
+ *.color234: #1d2021
+ *.color235: #404552
+ *.color236: #32302f
+ *.color237: #3c3836
+ *.color239: #504945
+ *.color241: #665c54
+ *.color243: #7c6f64
+ *.color244: #928374
+ *.color245: #928374
+ *.color246: #a89984
+ *.color248: #bdae93
+ *.color250: #d5c4a1

@@ -35,15 +35,22 @@ set hlsearch " highlight search
 
 " Remaps
 let mapleader=","
-
+map <F2> :FZF <CR>
+map <F1> :NERDTreeToggle <CR>
+map <F3> :TagbarToggle <CR>
+imap jj <Esc>
 
 
 " Plugins
 execute pathogen#infect()
 filetype plugin indent on
 
+" Fuzzy Finder
+set rtp+=~/.fzf
+
 
 "Colorscheme
-set t_Co=16
+"set t_Co=256
 set background=dark
-colorscheme solarized
+"colorscheme solarized
+colorscheme murphy
