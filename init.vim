@@ -36,21 +36,30 @@ set hlsearch " highlight search
 set autowrite
 
 " Remaps
-let mapleader=","
+let mapleader="\<Space>"
 map <F2> :FZF <CR>
 map <F1> :NERDTreeToggle <CR>
 map <F3> :TagbarToggle <CR>
 imap jj <Esc>
-nnoremap <A-h> <c-w>h
-nnoremap <A-j> <c-w>j
-nnoremap <A-k> <c-w>k
-nnoremap <A-l> <c-w>l
-nnoremap <A-+> <c-w>+
-nnoremap <A--> <c-w>-
-nnoremap <A->> <c-w>>
-nnoremap <A-<> <c-w><
-nnoremap <A-t> :10Term<CR>
-tnoremap <A-q> <C-\><C-n>:q<CR>
+nnoremap <leader>h <c-w>h
+nnoremap <leader>j <c-w>j
+nnoremap <leader>k <c-w>k
+nnoremap <leader>l <c-w>l
+nnoremap <leader>+ <c-w>+
+nnoremap <leader>- <c-w>-
+nnoremap <leader>> <c-w>>
+nnoremap <leader>< <c-w><
+nnoremap <leader>t :10Term<CR>
+nnoremap <leader>q :q<CR>
+tnoremap <leader>h <c-w>h
+tnoremap <leader>j <c-w>j
+tnoremap <leader>k <c-w>k
+tnoremap <leader>l <c-w>l
+tnoremap <leader>+ <c-w>+
+tnoremap <leader>- <c-w>-
+tnoremap <leader>> <c-w>>
+tnoremap <leader>< <c-w><
+tnoremap <leader>q <C-\><C-n>:q<CR>
 
 " Plugins
 "execute pathogen#infect()
@@ -74,8 +83,8 @@ Plug 'pangloss/vim-javascript'
 Plug 'digitaltoad/vim-pug'
 call plug#end()
 
-" Enable python3
-let g:python3_host_prog = '/usr/bin/python3'
+" Enable python
+let g:python_host_prog = '/usr/bin/python'
 
 " UltiSnips directory
 let g:UltiSnipsSnippetDirectories=["~/.config/nvim/snippets"]
@@ -117,7 +126,3 @@ let g:syntastic_mode_map = { 'mode': 'active',
       \ 'active_filetypes': [],
       \ 'passive_filetypes': ['go'] }
 let g:syntastic_go_checkers = ['golint', 'govet', 'errcheck']
-
-"Colorscheme
-set t_Co=256
-colorscheme lucario
