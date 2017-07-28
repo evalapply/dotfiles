@@ -38,7 +38,7 @@ let mapleader=","
 map <F2> :FZF <CR>
 map <F1> :NERDTreeToggle <CR>
 map <F3> :TagbarToggle <CR>
-imap <C-j> <Esc>
+imap <C-l> <Esc>
 nmap <S-Enter> O<Esc>
 nmap <CR> o<Esc>
 nmap ta a<space><Esc>
@@ -52,15 +52,21 @@ Plug 'scrooloose/nerdtree'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install -all' }
 Plug 'majutsushi/tagbar'
 Plug 'Shougo/neocomplete'
+
 Plug 'fatih/vim-go'
 Plug 'nsf/gocode'
 Plug 'elixir-lang/vim-elixir'
+Plug 'udalov/kotlin-vim'
 Plug 'mattn/emmet-vim'
 Plug 'artur-shaik/vim-javacomplete2'
+Plug 'rust-lang/rust.vim'
+Plug 'racer-rust/vim-racer'
+Plug 'rhysd/vim-crystal'
+Plug 'python-mode/python-mode'
+Plug 'dracula/vim'
 call plug#end()
 
 " NeoComplete
-" Disable AutoComplPop.
 let g:acp_enableAtStartup = 0
 " " Use neocomplete.
 let g:neocomplete#enable_at_startup = 1
@@ -79,9 +85,13 @@ function! s:my_cr_function()
   " For no inserting <CR> key.
   return pumvisible() ? "\<C-y>" : "\<CR>"
 endfunction
+" Close preview window
+autocmd CompleteDone * pclose
+" Do not autoselect first match
+set completeopt=longest,menuone
+let g:jedi#popup_select_first=0
 
 " JavaComplete
-autocmd FileType java setlocal omnifunc=javacomplete#Complete
 nmap <F4> <Plug>(JavaComplete-Imports-AddSmart)
 imap <F4> <Plug>(JavaComplete-Imports-AddSmart)
 nmap <F5> <Plug>(JavaComplete-Imports-Add)
@@ -92,33 +102,31 @@ nmap <F7> <Plug>(JavaComplete-Imports-RemoveUnused)
 imap <F7> <Plug>(JavaComplete-Imports-RemoveUnused)
 let g:JavaComplete_ClosingBrace = 1
 
+let g:go_fmt_command = "gofmt"
+
 " OmniCompletions
 autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
 autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
 autocmd FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS
 autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
+autocmd FileType java setlocal omnifunc=javacomplete#Complete
 
 " Fuzzy Finder
 set rtp+=~/.fzf
 
-
 "Colorscheme
-colorscheme onedark
-"set t_Co=256
+color dracula
+set t_Co=256
 set background=dark
 
-"Use 24-bit (true-color) mode in Vim/Neovim when outside tmux.
-"If you're using tmux version 2.2 or later, you can remove the outermost $TMUX check and use tmux's 24-bit color support
-"(see < http://sunaku.github.io/tmux-24bit-color.html#usage > for more information.)
-if (empty($TMUX))
-  if (has("nvim"))
-    "For Neovim 0.1.3 and 0.1.4 < https://github.com/neovim/neovim/pull/2198 >
-    let $NVIM_TUI_ENABLE_TRUE_COLOR=1
-  endif
-  "For Neovim > 0.1.5 and Vim > patch 7.4.1799 < https://github.com/vim/vim/commit/61be73bb0f965a895bfb064ea3e55476ac175162 >
-  "Based on Vim patch 7.4.1770 (`guicolors` option) < https://github.com/vim/vim/commit/8a633e3427b47286869aa4b96f2bfc1fe65b25cd >
-  " < https://github.com/neovim/neovim/wiki/Following-HEAD#20160511 >
-  if (has("termguicolors"))
-    set termguicolors
-  endif
-endif
+" Python
+let g:pymode_python = 'python3'
+let g:pymode_folding = 0
+let g:pymode_rope_complete_on_dot = 0
+
+" Golang
+let g:go_fmt_command = "goimports"
+
+" Rust Racer
+let g:racer_cmd = "~/.cargo/bin/racer"
+
