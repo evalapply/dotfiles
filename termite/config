@@ -1,0 +1,5 @@
+[options]
+font = Fira Mono 14
+[colors]
+background = rgba(00, 00, 00, 0.8)
+foreground = #FFF

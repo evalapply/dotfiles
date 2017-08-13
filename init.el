@@ -215,7 +215,8 @@
 (setq js-indent-level 2)
 
 ;; Java
-(require 'meghanada)
+(use-package meghanada
+  :ensure t)
 (add-hook 'java-mode-hook
           (lambda ()
             (meghanada-mode t)
@@ -354,7 +355,7 @@
   :ensure t)
 ;;(use-package material-theme
 ;;  :ensure t)
-(set-frame-font "Fira Code 14")
+(set-frame-font "Fira Mono 14")
 
 (setq ring-bell-function 'ignore)
 
