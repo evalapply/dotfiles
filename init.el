@@ -1,35 +1,12 @@
-;; package --- Summary
+;;; package --- Summary
 ;;; Commentary:
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                       BASE                                 ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;;; Code:
-;; Custom Functions
-(defun vi-open-line-above ()
-  "Insert a newline above the current line and put point at beginning."
-  (interactive)
-  (unless (bolp)
-    (beginning-of-line))
-  (newline)
-  (forward-line -1)
-  (indent-according-to-mode))
-
-(defun vi-open-line-below ()
-  "Insert a newline below the current line and put point at beginning."
-  (interactive)
-  (unless (eolp)
-    (end-of-line))
-  (newline-and-indent))
-
-;;(global-set-key (kbd "C-j") 'vi-open-line-above)
-;;(global-set-key (kbd "C-o") 'vi-open-line-below)
-
-;; after copy Ctrl+c in Linux X11, you can paste by `yank' in emacs
-(setq x-select-enable-clipboard t)
-
-;; after mouse selection in X11, you can paste by `yank' in emacs
-(setq x-select-enable-primary t)
-;; Start
-
-(setq inhibit-startup-screen t)
-;;Bootstrap use-package
 (require 'package)
 (setq
  package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
@@ -38,226 +15,415 @@
 		    ("elpy" . "https://jorgenschaefer.github.io/packages/")
                     ("melpa-stable" . "http://stable.melpa.org/packages/"))
  package-archive-priorities '(("melpa-stable" . 1)))
-;; Backup saves directory
-(setq backup-directory-alist `(("." . "~/.saves")))
 
 (package-initialize)
 (when (not package-archive-contents)
   (package-refresh-contents)
   (package-install 'use-package))
 (require 'use-package)
-;; Path From Shell
-(use-package exec-path-from-shell
+
+;; UTF-8 settings
+(set-language-environment               "UTF-8")
+(set-charset-priority			'unicode)
+(setq locale-coding-system		'utf-8)
+(set-terminal-coding-system		'utf-8)
+(set-keyboard-coding-system		'utf-8)
+(set-selection-coding-system		'utf-8)
+(prefer-coding-system			'utf-8)
+(setq default-process-coding-system	'(utf-8-unix . utf-8-unix))
+
+;; (show-paren-mode 1)
+;; (setq show-paren-delay 0)
+
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
+
+;; after copy Ctrl+c in Linux X11, you can paste by `yank' in emacs
+(setq select-enable-clipboard t)
+
+;; after mouse selection in X11, you can paste by `yank' in emacs
+(setq select-enable-primary t)
+
+;; Line numbers in programming mode
+(add-hook 'prog-mode-hook 'linum-mode)
+
+;; Electric pair mode in programming mode
+(add-hook 'prog-mode-hook #'electric-pair-mode)
+
+;; Paredit for lisp/schemes
+(use-package paredit
   :ensure t
   :config
-  (setq exec-path-from-shell-arguments nil)
-  (exec-path-from-shell-initialize))
+    (add-hook 'clojure-mode-hook #'paredit-mode)
+    (add-hook 'eval-expression-minibuffer-setup-hook #'paredit-mode)
+    (add-hook 'emacs-lisp-mode-hook #'paredit-mode)
+    (add-hook 'ielm-mode-hook #'paredit-mode)
+    (add-hook 'lisp-mode-hook #'paredit-mode)
+    (add-hook 'lisp-interaction-mode-hook #'paredit-mode)
+    (add-hook 'racket-mode-hook #'paredit-mode)
+    (add-hook 'scheme-mode-hook #'paredit-mode)
+    ;; Disable electric-pair when using paredit
+    (add-hook 'paredit-mode-hook (lambda ()
+				   (electric-pair-mode -1))))
 
-;;To try packages without installing
+;; Move lines in visual mode up/down with shift-j/k
+;; Selected words left and right with shift-h/l
+(use-package drag-stuff
+  :ensure t)
+
+;; For Debugging
+(use-package esup
+  :ensure t)
+
+;; For trying packages
 (use-package try
   :ensure t)
 
-;; To show key combinations
-(use-package which-key
-  :ensure t
-  :config (which-key-mode))
+(use-package multi-term
+  :ensure t)
 
-;;Org-mode
-(use-package org-bullets
-  :ensure t
-  :config
-  (add-hook 'org-mode-hook (lambda ()
-			     (org-bullets-mode 1)
-			     (org-babel-do-load-languages
-			      'org-babel-load-languages
-			      '((python . t)))
-			     )))
-;; Babel
+(global-set-key (kbd "C-x i") 'indent-for-tab-command)
 
-;; Markdown
-(eval-after-load "org"
-  '(require 'ox-md nil t))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                       AESTHETICS                           ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;Ace Window Management
-(use-package ace-window
+;; ;; Theme
+;; (use-package dracula-theme
+;;   :ensure t)
+
+(use-package nord-theme
   :ensure t
   :init
-  (progn
-    (global-set-key [remap other-window] 'ace-window)
-    ))
+  (defvar nord-comment-brightness 15))
 
-;; Swiper/Ivy search
-;; And Counsel -- dependency
+
+(if (display-graphic-p)
+    (enable-theme 'nord)
+  (load-theme 'tsdh-dark))
+
+(set-frame-font "Fira Code Retina 18")
+(setq inhibit-startup-screen t)
+(setq ring-bell-function 'ignore)
+(menu-bar-mode -1)
+(scroll-bar-mode -1)
+(tool-bar-mode -1)
+
+;;(set-frame-parameter (selected-frame) 'alpha '(90 . 50))
+;;(add-to-list 'default-frame-alist '(alpha . (90 . 50)))
+
+(use-package powerline
+  :ensure t
+  :init
+  (powerline-default-theme))
+
+(global-hl-line-mode 1)
+(set-face-background 'hl-line "#3e4446")
+(set-face-foreground 'highlight nil)
+
+(use-package rainbow-delimiters
+  :ensure t
+  :config
+  (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                      FUNCTIONALITY                         ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package company
+  :ensure t
+  :init (add-hook 'after-init-hook 'global-company-mode)
+  :config
+  (defvar company-dabbrev-downcase nil)
+  (setq company-idle-delay 0
+	company-minimum-prefix-length 1
+	company-show-numbers t
+	company-tooltip-align-annotations t
+	company-tooltip-limit 10)
+  (define-key company-active-map (kbd "<return>") nil)
+  (define-key company-active-map (kbd "RET") nil)
+  (define-key company-active-map (kbd "TAB") #'company-complete-selection)
+  (define-key company-active-map [tab] #'company-complete-selection))
+
+(use-package flycheck
+  :ensure t
+  :init (global-flycheck-mode))
+
+(use-package dashboard
+  :ensure t
+  :config
+  (setq dashboard-banner-logo-title "What is thy bidding, my Master?")
+  (setq dashboard-items
+	'((agenda . 5)
+	  (recents . 5)
+	  (projects . 5)))
+  (dashboard-setup-startup-hook))
+
+(use-package ediff
+  :ensure t
+  :config
+  (setq ediff-window-setup-function 'ediff-setup-windows-plain)
+  (setq-default ediff-highlight-all-diffs 'nil)
+  (setq ediff-diff-options "-w"))
+
+(use-package which-key
+  :ensure t
+  :init
+  (which-key-mode)
+  :config
+  (define-key help-map "\C-h" 'which-key-C-h-dispatch))
+
+(use-package define-word
+  :ensure t)
+
+(use-package exec-path-from-shell
+  :ensure t
+  :config
+  (when (memq window-system '(mac ns x))
+    (exec-path-from-shell-initialize))
+  (exec-path-from-shell-copy-env "KIEX_HOME")
+  (exec-path-from-shell-copy-env "MIX_ARCHIVES")
+  (exec-path-from-shell-copy-env "kotlinc")
+  (exec-path-from-shell-copy-env "RUST_SRC_PATH"))
+
+(use-package expand-region
+  :ensure t
+  :bind
+  ("C-=" . er/expand-region))
+
+(use-package flx
+  :ensure t)
+
 (use-package ivy
   :ensure t
-  :diminish (ivy-mode)
-  :bind (("C-x b" . ivy-switch-buffer))
+  :bind
+  ("C-s"	.	swiper)
+  ("C-x C-r"	.	ivy-resume)
+  ("C-l"	.	ivy-alt-done)
   :config
   (ivy-mode 1)
   (setq ivy-use-virtual-buffers t)
+  (setq enable-recursive-minibuffers t)
   (setq ivy-display-style 'fancy)
-  )
+  (setq ivy-extra-directories nil)
+  (setq ivy-re-builders-alist
+	'((t . ivy--regex-fuzzy)))
+  (setq ivy-initial-inputs-alist nil)
+  (counsel-mode 1))
 
-(use-package counsel
-  :ensure t
-  )
+;; Helm - Yikes!
+;; (use-package helm
+;;   :ensure t
+;;   :diminish helm-mode
+;;   :init
+;;   (setq helm-autoresize-max-height 30
+;;     helm-display-header-line nil
+;;     helm-always-two-windows t
+;;     helm-split-window-inside-p t
+;;     helm-move-to-line-cycle-in-source t
+;;     helm-ff-search-library-in-sexp t
+;;     helm-ff-file-name-history-use-recentf t
+;;     helm-comp-read-mode-line ""
+;;     helm-read-file-name-mode-line-string ""
+;;     helm-mode-line-string "")
+;;   ;; enable fuzzy matching
+;;   (setq helm-buffers-fuzzy-matching t
+;;     helm-completion-in-region-fuzzy-match t
+;;     helm-M-x-fuzzy-match t
+;;     helm-apropos-fuzzy-match t
+;;     helm-imenu-fuzzy-match t
+;;     helm-lisp-fuzzy-completion t
+;;     helm-locate-fuzzy-match t
+;;     helm-mode-fuzzy-match t
+;;     helm-recentf-fuzzy-match t
+;;     helm-semantic-fuzzy-match t)
+;;   :config
+;;   (require 'helm-config)
+;;   (helm-mode 1)
+;;   (helm-autoresize-mode 1))
 
-(use-package swiper
+;; ;; Fuzzy Matcher for Helm
+;; (use-package helm-flx
+;;   :ensure t
+;;   :after helm
+;;   :config
+;; (helm-flx-mode +1))
+
+;; Ace Window
+(use-package ace-window
   :ensure t
-  :bind (("C-s" . swiper)
-	 ("C-r" . swiper)
-	 ("C-c C-r" . ivy-resume)
-	 ("M-x" . counsel-M-x)
-	 ("C-x C-f" . counsel-find-file))
+  :bind
+  ("M-o" . ace-window)
   :config
-  (progn
-    (ivy-mode 1)
-    (setq ivy-use-virtual-buffers t)
-    (setq ivy-display-style 'fancy)
-    ))
-;;Avy Goto Char
-(use-package avy
-  :ensure t
-  :bind (("M-g c" . avy-goto-char)
-	 ("M-g w" . avy-goto-word-1))
-  )
+  ;; to use when 2 or less windows
+  ;; (setq aw-dispatch always t)
+  (setq aw-keys '(?a ?s ?d ?f ?j ?k ?l ?\;)))
 
-;; YASnippet
-(use-package yasnippet
-  :ensure t
-  :commands (yas-minor-mode)
 
+;; Project management
+(use-package projectile
+  :ensure t
+  :config
+  (setq projectile-completion-system 'ivy)
   :init
-  (progn
-    (add-hook 'prog-mode-hook #'yas-minor-mode))
-  :config
-  (progn
-    (yas-reload-all)))
+  (projectile-global-mode))
 
-;;Company-mode auto-complete
-(use-package company
+(use-package counsel-projectile
   :ensure t
-  :defer t
-  :init (add-hook 'after-init-hook 'global-company-mode)
+  :init
+  (counsel-projectile-mode))
+
+(use-package ag
+  :ensure t)
+
+(use-package neotree
+  :ensure t
   :config
-  (setq company-idle-delay 0
-	company-minimum-prefix-length 2
-	company-show-numbers t
-	company-tooltip-limit 10
-	company-dabbrev-downcase nil
-	;;company-backends '((company-elixir company-java company-go))
-	)
-  )
-;; Magit
+  (global-set-key [f1] 'neotree-toggle)
+  (setq neo-smart-open t)
+  (setq projectile-switch-project-action 'neotree-projectile-action)
+  (setq neo-theme (if (display-graphic-p) 'icons 'arrow 'nerd)))
+(use-package all-the-icons
+  :ensure t)
+
+;; Version Control
 (use-package magit
-  :ensure t
-  :bind ("C-x g" . magit-status))
+  :config
+  (setq magit-completing-read-function 'ivy-completing-read)
+  :bind
+  ("C-x g" . magit-status))
 
-;; Web
-(use-package emmet-mode
+(use-package git-gutter-fringe
+  :ensure t)
+
+;; (use-package magithub
+  ;; :after magit
+  ;; :ensure t
+  ;; :config (magithub-feature-autoinject t))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                          EVIL                              ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun alex/open-init ()
+  "Open my init file."
+  (interactive)
+  (find-file user-init-file))
+
+(defun alex/insert-line-above ()
+  "Insert a line above current line."
+  (interactive)
+  (save-excursion
+    (end-of-line 0)
+    (open-line 1)))
+
+(defun alex/insert-line-below ()
+  "Insert a line below current line."
+  (interactive)
+  (save-excursion
+    (end-of-line)
+    (open-line 1)))
+
+(use-package evil
   :ensure t
   :config
-  (add-hook 'sgml-mode-hook #'emmet-mode)
-  (add-hook 'css-mode-hook  'emmet-mode))
-(unbind-key "C-j" emmet-mode-keymap)
-(define-key emmet-mode-keymap (kbd "C-,") 'emmet-expand-line)
-(with-eval-after-load 'web-mode
-  (add-hook 'javascript-mode 'web-mode)
-  (add-hook 'web-mode-hook 'emmet-mode))
+  (evil-mode 1)
+  (evil-global-set-key 'normal ",s" 'save-buffer)
+  (evil-global-set-key 'normal ",q" 'save-buffers-kill-terminal)
+  (evil-global-set-key 'normal ",n" 'evil-ex-nohighlight)
+  (evil-global-set-key 'normal ",e" 'dired)
+  (evil-global-set-key 'normal ",t" 'multi-term-dedicated-toggle)
+  (evil-global-set-key 'normal ",f" 'counsel-find-file)
+  (evil-global-set-key 'normal ",b" 'switch-to-buffer)
+  (evil-global-set-key 'normal "]q" 'flycheck-next-error)
+  (evil-global-set-key 'normal "[q" 'flycheck-previous-error)
+  (evil-global-set-key 'normal (kbd "[ <SPC>") 'alex/insert-line-above)
+  (evil-global-set-key 'normal (kbd "] <SPC>") 'alex/insert-line-below)
+  (evil-global-set-key 'visual (kbd "H") 'drag-stuff-left)
+  (evil-global-set-key 'visual (kbd "J") 'drag-stuff-down)
+  (evil-global-set-key 'visual (kbd "K") 'drag-stuff-up)
+  (evil-global-set-key 'visual (kbd "L") 'drag-stuff-right)
+  (evil-global-set-key 'normal ",vr" 'alex/open-init))
 
-;; Css
-(setq css-indent-offset 2)
-
-;; Templates
-(use-package web-mode
-  :ensure t)
-(add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.moustache\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
-;;(add-to-list 'auto-mode-alist '("\\.[s]css\\'" .web-mode))
-(add-to-list 'auto-mode-alist '("\\.js\\'" . web-mode))
-
-;;(setq web-mode-enable-auto-pairing t)
-
-(setq web-mode-content-types-alist
-      '(("jsx" . "\\.js[x]?\\'")))
-
-
-(setq web-mode-code-indent-offset 2)
-(setq web-mode-css-indent-offset 2)
-(setq web-mode-attr-indent-offset 2)
-(setq web-mode-markup-indent-offset 2)
-(setq web-mode-engines-alist
-      '(("django"  . "\\.jinja\\'")
-        ("django"  . "\\.djhtml\\'")
-        ("django"  . "\\.html\\'")
-        ("erb"     . "\\.erb\\'")
-	("thymeleaf" . "'\\.html\\'")
-	("blade" . "\\.blade\\.")))
-;;php
-(use-package php-mode
+(use-package evil-escape
   :ensure t
-  :defer t)
-
-(use-package company-php
-  :ensure t
-  :defer t
+  :config
+  (setq-default evil-escape-key-sequence "jk")
+  (setq-default evil-escape-delay 0.2)
   :init
-  (with-eval-after-load 'company
-    (add-to-list 'company-backends 'company-php)))
+  (evil-escape-mode t))
 
-;; Javascript
-(setq js-indent-level 2)
+(use-package evil-commentary
+  :ensure t
+  :config
+  (evil-commentary-mode))
 
-;; Java
-(use-package meghanada
-  :ensure t)
-(add-hook 'java-mode-hook
-          (lambda ()
-            (meghanada-mode t)
-            (add-hook 'before-save-hook 'meghanada-code-beautify-before-save)))
-
-(use-package java-snippets
+(use-package evil-magit
   :ensure t)
 
-(use-package groovy-mode
-  :ensure t)
-(use-package gradle-mode
-  :ensure t)
-(use-package kotlin-mode
-  :ensure t)
+(use-package evil-lion
+  :ensure t
+  :config
+  (evil-lion-mode))
 
-;; Ruby / Rails
-(use-package inf-ruby
-  :ensure t)
+;;Specific conflict with Neotree & Evil
+(evil-define-key 'normal neotree-mode-map (kbd "TAB") 'neotree-enter)
+(evil-define-key 'normal neotree-mode-map (kbd "SPC") 'neotree-enter)
+(evil-define-key 'normal neotree-mode-map (kbd "q") 'neotree-hide)
+(evil-define-key 'normal neotree-mode-map (kbd "RET") 'neotree-enter)
 
-;;(use-package robe
-;;  :ensure t
-;;  :config
-;;  (add-hook 'ruby-mode-hook 'robe-mode))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                       LANGUAGES                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(add-hook 'ruby-mode-hook 'electric-pair-mode)
 
-;;(eval-after-load 'company
-;;  '(push 'company-robe company-backends))
 
-;; Set up the basic Elixir mode.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                     Elixir
+
+(defun elixir/fancify-symbols (mode)
+  (font-lock-add-keywords mode
+			  '(("\\(|>\\)[\[[:space:]]"
+			     (0 (progn (compose-region (match-beginning 1)
+						       (match-end 1) "⦊"))))
+			    ("\\(++\\)[\[[:space:]]"
+			     (0 (progn (compose-region (match-beginning 1)
+						       (match-end 1) "⧺"))))
+			    ("\\(=>\\)[\[[:space:]]"
+			     (0 (progn (compose-region (match-beginning 1)
+						       (match-end 1) "⇒"))))
+			    ("\\(<>\\)[\[[:space:]]"
+			     (0 (progn (compose-region (match-beginning 1)
+						       (match-end 1) "⃟"))))
+			    ("\\(||\\)[\:space:]]"
+			     (0 (progn (compose-region (match-beginning 1)
+						       (match-end 1) "∥")))))))
+
 (use-package elixir-mode
   :ensure t
-  :commands elixir-mode
   :config
-  (add-hook 'elixir-mode-hook 'alchemist-mode))
+  (add-to-list 'elixir-mode-hook 'alchemist-mode)
+  ;; (elixir/fancify-symbols 'elixir-mode)
+  )
 
-;; Alchemist offers integration with the Mix tool.
+(use-package s
+  :ensure t) ;; required by alchemist
 (use-package alchemist
   :ensure t
   :commands alchemist-mode
   :config
+  (setq alchemist-iex-program-name "/home/asqrd/.kiex/elixirs/elixir-1.6.1/bin/iex")
+  (setq alchemist-execute-command "/home/asqrd/.kiex/elixirs/elixir-1.6.1/bin/elixir")
+  (setq alchemist-compile-command "/home/asqrd/.kiex/elixirs/elixir-1.6.1/bin/elixirc")
+  (setq alchemist-mix-command "/home/asqrd/.kiex/elixirs/elixir-1.6.1/bin/mix")
   ;; Bind some Alchemist commands to more commonly used keys.
   (bind-keys :map alchemist-mode-map
              ("C-c C-l" . (lambda () (interactive)
@@ -266,124 +432,232 @@
   (bind-keys :map alchemist-mode-map
              ("C-x C-e" . alchemist-iex-send-current-line)))
 
-;;Golang
-(setenv "GOPATH" "/home/asqrd/Work/code/go")
-(add-to-list 'exec-path "/home/asqrd/Work/code/go/bin")
 
-(use-package company-go
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                          Ruby
+
+(defvar ruby-indent-level 2)
+
+(use-package inf-ruby
   :ensure t)
 
-(add-hook 'go-mode-hook 'company-mode)
-(add-hook 'go-mode-hook (lambda ()
-  (set (make-local-variable 'company-backends) '(company-go))
-  (company-mode)))
-
-(use-package go-mode
-  :ensure t
-  :init
-  (progn
-    (setq gofmt-command "goimports")
-    (add-hook 'before-save-hook 'gofmt-before-save)
-    (bind-key [remap find-tag] #'godef-jump))
-  :config
-  (add-hook 'go-mode-hook 'electric-pair-mode))
-
-(use-package flycheck-gometalinter
+(use-package robe
   :ensure t
   :config
-  (progn
-    (flycheck-gometalinter-setup)))
+  (add-hook 'ruby-mode-hook 'robe-mode))
 
-(use-package go-eldoc
+(use-package rvm
   :ensure t
-  :defer
-  :init
-  (add-hook 'go-mode-hook 'go-eldoc-setup))
+  :config
+  (rvm-use-default))
 
-;; Python
-;;(use-package elpy
-;;  :ensure t)
-;;(elpy-enable)
+(use-package projectile-rails
+  :ensure t
+  :config
+  (projectile-rails-global-mode))
+
+(use-package rspec-mode
+  :ensure t
+  :config
+  '(rspec-install-snippets))
+
+(defadvice inf-ruby-console-auto (before activate-rvm-for-robe activate)
+  "Select correct ruby version."
+  (rvm-activate-corresponding-ruby))
+
+(eval-after-load 'company
+  '(push 'company-robe company-backends))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                         Python
+(use-package elpy
+  :ensure t
+  :config
+  (setq elpy-rpc-python-command "python3")
+  (setq python-shell-interpreter "python3")
+  (elpy-enable))
+
 (use-package company-jedi
   :ensure t)
+
 (with-eval-after-load 'company
   (add-to-list 'company-backends 'company-jedi))
-;;Flycheck Syntax lint
-(use-package flycheck
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                          Java
+
+(use-package meghanada
   :ensure t
-  :init (global-flycheck-mode)
-  ;; Only Check on Save
-  :config (setq flycheck-check-syntax-automatically '(mode-enabled save)))
-;;Projectile
-(use-package projectile
+  :config
+  (add-hook 'java-mode-hook
+	    (lambda ()
+	      (meghanada-mode t)
+	      (defvar c-basic-offset 2)
+	      (highlight-symbol-mode t)
+	      (add-hook 'before-save-hook 'meghanada-code-beautify-before-save))))
+
+;; (use-package java-snippets
+;;   :ensure t)
+
+(use-package groovy-mode
+  :ensure t)
+(use-package gradle-mode
+  :ensure t)
+(use-package kotlin-mode
+  :ensure t)
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                       CPP
+(use-package irony
   :ensure t
-  :init (projectile-global-mode))
+  :config
+  (add-hook 'c++-mode-hook 'irony-mode)
+  (add-hook 'c-mode-hook 'irony-mode)
+  (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
 
-(use-package counsel-projectile
+(use-package irony-eldoc
   :ensure t
-  :init
-  (counsel-projectile-on))
+  :config
+  (add-hook 'irony-mode-hook #'irony-eldoc))
 
-;;Neotree
-(use-package neotree
-  :ensure t)
-(global-set-key [f1] 'neotree-toggle)
-(setq neo-smart-open t)
-(setq projectile-switch-project-action 'neotree-projectile-action)
-(setq neo-theme (if (display-graphic-p) 'icons 'arrow 'nerd))
-(use-package all-the-icons
-  :ensure t)
-;; Evil
-(use-package evil
-  :ensure t)
-(evil-mode t)
-(use-package evil-escape
-  :ensure t)
-(evil-escape-mode t)
-;;(setq-default evil-escape-key-sequence "C-;")
-(global-set-key (kbd "C-l") 'evil-escape)
-(setq-default evil-escape-delay 0.2)
-;;Specific conflict with Neotree & Evil
-(evil-define-key 'normal neotree-mode-map (kbd "TAB") 'neotree-enter)
-(evil-define-key 'normal neotree-mode-map (kbd "SPC") 'neotree-enter)
-(evil-define-key 'normal neotree-mode-map (kbd "q") 'neotree-hide)
-(evil-define-key 'normal neotree-mode-map (kbd "RET") 'neotree-enter)
-;; Line numbers
-(add-hook 'prog-mode-hook 'linum-mode)
-;;Theme and behaviour
-(use-package dracula-theme
-  :ensure t)
-;;(use-package material-theme
-;;  :ensure t)
-(set-frame-font "Fira Mono 14")
+;; (use-package rtags
+;;   :ensure t)
 
-(setq ring-bell-function 'ignore)
 
-(set-frame-parameter (selected-frame) 'alpha '(90 . 50))
- (add-to-list 'default-frame-alist '(alpha . (90 . 50)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                        Rust
+(use-package rust-mode
+  :ensure t)
+
+(use-package cargo
+  :ensure t
+  :config
+  (add-hook 'rust-mode-hook 'cargo-minor-mode))
+
+(use-package racer
+  :ensure t
+  :config
+  (add-hook 'rust-mode-hook #'racer-mode)
+  (add-hook 'racer-mode-hook #'eldoc-mode)
+  (setq racer-rust-src-path (getenv "RUST_SRC_PATH")))
+
+(use-package flycheck-rust
+  :ensure t
+  :config
+  (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                     Clojure
+
+;; This was shamelessly stolen from spacemacs- Thanks :)
+(defun clojure/fancify-symbols (mode)
+  "Pretty symbols for Clojure's anonymous functions and sets,
+   like (λ [a] (+ a 5)), ƒ(+ % 5), and ∈{2 4 6}."
+  (font-lock-add-keywords mode
+			  `(("(\\(fn\\)[\[[:space:]]"
+			     (0 (progn (compose-region (match-beginning 1)
+						       (match-end 1) "λ"))))
+			    ("(\\(partial\\)[\[[:space:]]"
+			     (0 (progn (compose-region (match-beginning 1)
+						       (match-end 1) "Ƥ"))))
+			    ("(\\(comp\\)[\[[:space:]]"
+			     (0 (progn (compose-region (match-beginning 1)
+						       (match-end 1) "∘"))))
+			    ("\\(#\\)("
+			     (0 (progn (compose-region (match-beginning 1)
+						       (match-end 1) "ƒ"))))
+			    ("\\(#\\){"
+			     (0 (progn (compose-region (match-beginning 1)
+						       (match-end 1) "∈")))))))
+
+;; Lein
+(add-to-list 'exec-path "/home/asqrd/.sdkman/candidates/leiningen/current/bin/lein")
+
+(use-package clojure-mode
+  :ensure t)
+
+;; (use-package clj-refactor
+;;   :ensure t
+;;   :config
+;;   (cljr-add-keybindings-with-prefix "C-c C-m")
+;;   (add-hook 'clojure-mode-hook #'clj-refactor-mode)
+;;   (add-hook 'clojure-mode-hook #'yas-minor-mode))
+
+(use-package cider
+  :ensure t
+  :config
+  (define-key cider-mode-map (kbd "C-c M-l") 'cider-inspect-last-result)
+  (define-key cider-mode-map (kbd "C-c M-v") 'cider-find-var)
+  (define-key cider-mode-map (kbd "C-c M-f") 'cider-find-var)
+  (add-hook 'clojure-mode-hook #'cider-mode)
+  (clojure/fancify-symbols 'cider-repl-mode)
+  (clojure/fancify-symbols 'clojure-mode))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                        Web
+(use-package web-mode
+  :ensure t
+  :config
+  (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.eex\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+  (setq web-mode-markup-indent-offset 2)
+  (setq web-mode-css-indent-offset 2)
+  (setq web-mode-code-indent-offset 2)
+  (setq web-mode-enable-auto-pairing t)
+  (setq web-mode-enable-css-colorization t)
+  (setq web-mode-enable-current-element-highlight t)
+  (setq web-mode-enable-current-column-highlight t))
+
+(use-package emmet-mode
+  :ensure t
+  :config
+  (add-hook 'web-mode-hook 'emmet-mode)
+  (setq emmet-move-cursor-between-quotes t)
+  (defvar emmet-self-closing-tag-styles " /")
+  (define-key emmet-mode-keymap (kbd "C-j") nil)
+  (define-key emmet-mode-keymap (kbd "C-,") 'emmet-expand-line))
+
+(use-package restclient
+  :ensure t)
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                       DO NOT TOUCH!                        ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(ansi-color-faces-vector
-   [default bold shadow italic underline bold bold-italic bold])
- '(blink-cursor-mode nil)
- '(custom-enabled-themes (quote (dracula)))
- '(custom-safe-themes
-   (quote
-    ("98cc377af705c0f2133bb6d340bf0becd08944a588804ee655809da5d8140de6")))
- '(ivy-mode t)
- '(menu-bar-mode nil)
  '(package-selected-packages
    (quote
-    (flycheck-gometalinter ggo-mode java-snippets rjsx-mode esup dracula-theme kotlin-mode enh-ruby-mode robe robe-mode projectile-rails magit emmet-mode jedi elpy counsel-projectile projectile key-chord evil-surround evil-leader evil-indent-textobject evil evil-escape all-the-icons neotree mvn exec-path-from-shell ensime f gradle-mode groovy-mode company-go go-eldoc go-mode alchemist meghanada material-theme atom-one-dark-theme spacemacs-theme company counsel swiper ace-window org-bullets which-key try use-package)))
- '(scroll-bar-mode nil)
- '(tool-bar-mode nil))
+    (drag-stuff sudoku typit typing ag emmet-mode multi-term try irony-eldoc irony kotlin-mode gradle-mode groovy-mode meghanada tabbar evil-tabs powerline evil-commentary evil counsel-projectile projectile ace-window ivy expand-region exec-path-from-shell dashboard flycheck company dracula-theme use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(aw-leading-char-face ((t (:inherit ace-jump-face-foreground :height 3.0)))))
-
+ )

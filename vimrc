@@ -1,10 +1,12 @@
 " Specify directory for plugins
 " Begin vim-plug load
-call plug#begin('~/.config/nvim/plugged')
+call plug#begin('~/.vim/plugged')
 
   "           Themes
   "##############################
+  Plug 'dracula/vim'
   Plug 'arcticicestudio/nord-vim'
+
 
   "      File Navigation
   "##############################
@@ -29,12 +31,10 @@ call plug#begin('~/.config/nvim/plugged')
   "         Coding/IDE
   "##############################
   Plug 'janko-m/vim-test'
-  " Plug 'tpope/vim-dispatch'
+  Plug 'tpope/vim-dispatch'
   " Provides commands, check frequently
-  " :help unimpaired
+  " help unimpaired
   Plug 'tpope/vim-unimpaired'
-  " Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
-  Plug 'roxma/nvim-completion-manager'
   " Vim repeat note:
   " To add support for specific plugins
   " silent! call repeat#set("\<Plug>MyWonderfulMap", v:count)
@@ -45,21 +45,14 @@ call plug#begin('~/.config/nvim/plugged')
   "    Code Syntax/Navigation
   "##############################
   Plug 'ludovicchabant/vim-gutentags'
-  Plug 'neomake/neomake'
-  " Plug 'w0rp/ale'
+  Plug 'w0rp/ale'
 
-
-
-  "         Terminal
-  "##############################
-  Plug 'kassio/neoterm'
 
 
   "       Version Control
   "##############################
   Plug 'tpope/vim-fugitive'
   Plug 'airblade/vim-gitgutter'
-
 
 
   "         Languages
@@ -75,7 +68,6 @@ call plug#begin('~/.config/nvim/plugged')
   Plug 'c-brenn/phoenix.vim'
   Plug 'elixir-lang/vim-elixir'
   Plug 'thinca/vim-ref'
-  Plug 'awetzel/elixir.nvim', { 'do': 'yes \| ./install.sh' }
 
   " Ruby
   Plug 'tpope/vim-bundler'
@@ -83,20 +75,15 @@ call plug#begin('~/.config/nvim/plugged')
   Plug 'tpope/vim-rails'
 
   " Clojure
-  " Plug 'tpope/vim-fireplace'
-  Plug 'clojure-vim/acid.nvim'
+  Plug 'tpope/vim-fireplace'
   " Add [grimvim \"0.1.0"] to project.clj
   Plug 'jebberjeb/grimoire.vim'
-  Plug 'clojure-vim/async-clj-omni'
 
   " Java
   Plug 'artur-shaik/vim-javacomplete2'
   
   " CPP
   Plug 'Rip-Rip/clang_complete'
-
-  "Lispy
-  Plug 'jpalardy/vim-slime'
 
 
   "       Misc Utilities
@@ -117,13 +104,11 @@ set number
 set showmatch
 " Set backup directory
 " // <- means filenames should be built from complete path
-set backupdir=~/.config/nvim/.backup// 
+set backupdir=~/.vim/.backup// 
 " Set swap directory
-set directory=~/.config/nvim/.swp//
+set directory=~/.vim/.swp//
 " Set undo directory
-set undodir=~/.config/nvim/.undo//
-
-
+set undodir=~/.vim/.undo//
 
 " Remaps
 " ####################
@@ -134,17 +119,17 @@ set cul
 " Get Rid of Escape!
 "
 " jk to exit insert mode
-imap jk <Esc> 
+imap jk <Esc>
 " jk to exit command mode
 cmap <C-g> <C-c>
 " v to exit visual mode
 vmap v <Esc>
 " jk to exit terminal mode
-tmap jk <C-\><C-n>
+tnoremap jk <C-w>N
 
 " ,s to save
 map <leader>s :w<CR>
-" ,q to save and quit
+" ,q to quit
 map <leader>q :q<CR>
 " Get rid of search highlight
 nmap <leader>n :noh<CR> 
@@ -153,7 +138,7 @@ map <leader>cc :ccl<CR>
 " Open quickfix window
 map <leader>co :cope<CR>
 " Goto vimrc
-nmap <leader>vr :e ~/.config/nvim/init.vim<CR> 
+nmap <leader>vr :e ~/.vimrc<CR> 
 " Faster open file
 nmap <leader>o :e 
 " Open netrw
@@ -179,6 +164,20 @@ imap <F1> <Esc>:NERDTreeToggle<CR>
 nmap <F1> :NERDTreeToggle<CR> 
 " FZF FuzzyFind
 map <leader>f :FZF<CR>
+" Open terminal with ,t !TODO: Extract out to function
+nmap <leader>t <C-w>s<C-w>j:term ++curwin<CR>
+" Bloody C-w...
+nmap <leader>dv <C-w>v
+nmap <leader>ds <C-w>s
+nmap <C-h> <C-w>h
+nmap <C-j> <C-w>j
+nmap <C-k> <C-w>k
+nmap <C-l> <C-w>l
+tnoremap <C-h> <C-w>N<C-w>h
+tnoremap <C-j> <C-w>N<C-w>j
+tnoremap <C-k> <C-w>N<C-w>k
+tnoremap <C-l> <C-w>N<C-w>l
+
 
 
 
@@ -211,13 +210,12 @@ set rtp+=~/.fzf
 set completeopt=longest,menuone
 
 
-
 " Editing
 " ####################
 " Tags
-let g:gutentags_cache_dir = '~/.config/nvim/.tags_cache'
-" " Neomake
-" " Checks whether running on battery
+let g:gutentags_cache_dir = '~/.vim/.tags_cache'
+" Neomake
+" Checks whether running on battery
 " function! MyOnBattery()
 "   return readfile('/sys/class/power_supply/AC/online') == ['0']
 " endfunction
@@ -244,30 +242,7 @@ let g:CommandTFileScanner = "git"
 " increase max files
 let g:CommandTMaxFiles=200000
 
-" Deoplete
-let g:deoplete#enable_at_startup = 1
 
-" Neoterm
-let g:neoterm_position = 'horizontal'
-let g:neoterm_automap_keys = ',tm'
-" Useful maps
-" Toggle last terminal, new if none are open
-nnoremap <silent> ,to :Ttoggle<CR>
-" Consider :Topen - opens a new terminal, or the current
-" Opens a new terminal
-nnoremap <silent> ,tn :Tnew<CR>
-" hide/close terminal
-nnoremap <silent> ,th :call neoterm#close()<cr>
-" clear terminal
-nnoremap <silent> ,tl :call neoterm#clear()<cr>
-" kills the current job (send a <c-c>)
-nnoremap <silent> ,tc :call neoterm#kill()<cr>
-" Repl mappings
-nmap gx <Plug>(neoterm-repl-send)
-xmap gx <Plug>(neoterm-repl-send)
-nmap gxx <Plug>(neoterm-repl-send-line)
-" now can use gx{text-objects} such as gxip
-let g:slime_target = "neovim"
 
 " OmniCompletions
 autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
@@ -282,4 +257,4 @@ autocmd FileType java setlocal omnifunc=javacomplete#Complete
 " ####################
 colorscheme nord
 set t_Co=256
-set termguicolors
+" set termguicolors
