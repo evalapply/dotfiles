@@ -14,7 +14,9 @@
                     ("melpa" . "http://melpa.org/packages/")
 		    ("elpy" . "https://jorgenschaefer.github.io/packages/")
                     ("melpa-stable" . "http://stable.melpa.org/packages/"))
- package-archive-priorities '(("melpa-stable" . 1)))
+ package-archive-priorities '(("melpa-stable" . 10)
+			      ("melpa" . 5)
+			      ("gnu" . 1)))
 
 (package-initialize)
 (when (not package-archive-contents)
@@ -49,6 +51,10 @@
 ;; Electric pair mode in programming mode
 (add-hook 'prog-mode-hook #'electric-pair-mode)
 
+;; required by many packages.
+(use-package dash
+  :ensure t)
+
 ;; Paredit for lisp/schemes
 (use-package paredit
   :ensure t
@@ -68,7 +74,10 @@
 ;; Move lines in visual mode up/down with shift-j/k
 ;; Selected words left and right with shift-h/l
 (use-package drag-stuff
-  :ensure t)
+  :ensure t
+  :config
+  ;; (drag-stuff-define-keys)
+  (drag-stuff-global-mode 1))
 
 ;; For Debugging
 (use-package esup
@@ -79,9 +88,50 @@
   :ensure t)
 
 (use-package multi-term
-  :ensure t)
+  :ensure t
+  :config
+  (global-set-key (kbd "C-x t") 'multi-term-dedicated-toggle))
 
 (global-set-key (kbd "C-x i") 'indent-for-tab-command)
+
+;; Log my coding with Wakatime
+(use-package wakatime-mode
+  :ensure t
+  :config
+  (global-wakatime-mode))
+
+;; autosaves and backups
+(setq auto-save-default nil)
+(setq make-backup-files nil)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                     Custom Functions                       ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun alex/open-init ()
+  "Open my init file."
+  (interactive)
+  (find-file user-init-file))
+
+(defun alex/clear-buffers ()
+  "Clear all recent buffers."
+  (interactive)
+  (setq recentf-list '()))
+
+(defun alex/insert-line-above ()
+  "Insert a line above current line."
+  (interactive)
+  (save-excursion
+    (end-of-line 0)
+    (open-line 1)))
+
+(defun alex/insert-line-below ()
+  "Insert a line below current line."
+  (interactive)
+  (save-excursion
+    (end-of-line)
+    (open-line 1)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -94,14 +144,18 @@
 ;;   :ensure t)
 
 (use-package nord-theme
-  :ensure t
-  :init
-  (defvar nord-comment-brightness 15))
+  :ensure t)
+
+(with-eval-after-load 'nord-theme
+  (setq nord-comment-brightness 20)
+  ;; Highlight can be frost or snowstorm
+  (setq nord-region-highlight "snowstorm")
+  (setq nord-uniform-mode-lines t))
 
 
-(if (display-graphic-p)
-    (enable-theme 'nord)
-  (load-theme 'tsdh-dark))
+;; (if (display-graphic-p)
+;;     (enable-theme 'nord)
+;;   (load-theme 'tsdh-dark))
 
 (set-frame-font "Fira Code Retina 18")
 (setq inhibit-startup-screen t)
@@ -113,10 +167,10 @@
 ;;(set-frame-parameter (selected-frame) 'alpha '(90 . 50))
 ;;(add-to-list 'default-frame-alist '(alpha . (90 . 50)))
 
-(use-package powerline
-  :ensure t
-  :init
-  (powerline-default-theme))
+;; (use-package powerline
+;;   :ensure t
+;;   :init
+;;   (powerline-default-theme))
 
 (global-hl-line-mode 1)
 (set-face-background 'hl-line "#3e4446")
@@ -158,8 +212,8 @@
   (setq dashboard-banner-logo-title "What is thy bidding, my Master?")
   (setq dashboard-items
 	'((agenda . 5)
-	  (recents . 5)
-	  (projects . 5)))
+	  (projects . 5)
+	  (recents . 5)))
   (dashboard-setup-startup-hook))
 
 (use-package ediff
@@ -209,10 +263,15 @@
   (setq enable-recursive-minibuffers t)
   (setq ivy-display-style 'fancy)
   (setq ivy-extra-directories nil)
-  (setq ivy-re-builders-alist
-	'((t . ivy--regex-fuzzy)))
+  ;; (setq ivy-re-builders-alist
+  ;; 	'((t . ivy--regex-fuzzy)))
+  (avy-setup-default)
   (setq ivy-initial-inputs-alist nil)
   (counsel-mode 1))
+
+;; (global-set-key (kbd "M-g w") 'avy-goto-word-1)
+;; (global-set-key (kbd "M-g g") 'avy-goto-line)
+;; (global-set-key (kbd "M-g c") 'avy-goto-char)
 
 ;; Helm - Yikes!
 ;; (use-package helm
@@ -255,8 +314,8 @@
 ;; Ace Window
 (use-package ace-window
   :ensure t
-  :bind
-  ("M-o" . ace-window)
+  ;; :bind
+  ;; ("M-o" . ace-window)
   :config
   ;; to use when 2 or less windows
   ;; (setq aw-dispatch always t)
@@ -311,24 +370,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun alex/open-init ()
-  "Open my init file."
-  (interactive)
-  (find-file user-init-file))
-
-(defun alex/insert-line-above ()
-  "Insert a line above current line."
-  (interactive)
-  (save-excursion
-    (end-of-line 0)
-    (open-line 1)))
-
-(defun alex/insert-line-below ()
-  "Insert a line below current line."
-  (interactive)
-  (save-excursion
-    (end-of-line)
-    (open-line 1)))
 
 (use-package evil
   :ensure t
@@ -372,11 +413,75 @@
   :config
   (evil-lion-mode))
 
-;;Specific conflict with Neotree & Evil
+;; Specific conflict with Neotree & Evil
 (evil-define-key 'normal neotree-mode-map (kbd "TAB") 'neotree-enter)
 (evil-define-key 'normal neotree-mode-map (kbd "SPC") 'neotree-enter)
 (evil-define-key 'normal neotree-mode-map (kbd "q") 'neotree-hide)
 (evil-define-key 'normal neotree-mode-map (kbd "RET") 'neotree-enter)
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                        Orgmode                             ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(setq org-agenda-files (list "~/org/daily.org"
+			     "~/org/journal"))
+
+(setq org-agenda-file-regexp "\\`[^.].*\\.org\\'\\|\\`[0-9]+\\'")
+
+(setq org-return-follows-link t)
+
+;; (setq org-agenda-files (list "~/org/daily.org"
+;; 			     "~/org/personal"
+;; 			     "~/org/work"))
+
+(defun my-org-keep-quiet (orig-fun &rest args)
+  (let ((buffers-pre (-filter #'get-file-buffer (org-agenda-files))))
+    (apply orig-fun args)
+    (let* ((buffers-post (-filter #'get-file-buffer (org-agenda-files)))
+           (buffers-new  (-difference buffers-post buffers-pre)))
+      (mapcar (lambda (file) (kill-buffer (get-file-buffer file))) buffers-new))))
+
+;; (advice-add 'org-agenda-list :around #'my-org-keep-quiet)
+;; (advice-add 'org-search-view :around #'my-org-keep-quiet)
+;; (advice-add 'org-tags-view :around #'my-org-keep-quiet)
+(advice-add 'dashboard-setup-startup-hook :around #'my-org-keep-quiet)
+
+(defvar org-capture-templates '(("t" "Task [inbox]" entry
+			       (file+headline "~/org/inbox.org" "Tasks")
+			       "*** TODO %?\t:uncategorized:")
+				("n" "Note [inbox]" entry
+				 (file+headline "~/org/inbox.org" "Notes")
+				 "*** Note -> %?")
+				("i" "Idea [inbox]" entry
+				 (file+headline "~/org/inbox.org" "Ideas")
+				 "*** Idea - %?")
+				("r" "Reference [inbox]" entry
+				 (file+headline "~/org/inbox.org" "References")
+				 "*** Reference: %^G %?")
+				("o" "Other [inbox]" entry
+				 (file+headline "~/org/inbox.org" "Others")
+				 "*** Other *%?*")))
+
+(global-set-key (kbd "C-x c") 'counsel-org-capture)
+
+(use-package org-bullets
+  :ensure t
+  :config
+  (add-hook 'org-mode-hook (lambda ()
+			     (org-bullets-mode 1))))
+
+(use-package org-journal
+  :ensure t
+  :bind
+  ("C-x j" . org-journal-new-entry)
+  :config
+  (setq org-journal-dir "~/org/journal")
+  (global-unset-key (kbd "C-c C-j")))
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -444,8 +549,15 @@
 
 (use-package robe
   :ensure t
+  :commands robe-mode
+  :after inf-ruby company
   :config
+  (define-key ruby-mode-map (kbd "C-c C-c") 'robe-start)
   (add-hook 'ruby-mode-hook 'robe-mode))
+
+
+  ;; (eval-after-load 'company
+  ;;   '(push 'company-robe company-backends))
 
 (use-package rvm
   :ensure t
@@ -462,12 +574,9 @@
   :config
   '(rspec-install-snippets))
 
-(defadvice inf-ruby-console-auto (before activate-rvm-for-robe activate)
-  "Select correct ruby version."
-  (rvm-activate-corresponding-ruby))
-
-(eval-after-load 'company
-  '(push 'company-robe company-backends))
+;; (defadvice inf-ruby-console-auto (before activate-rvm-for-robe activate)
+;;   "Select correct ruby version."
+;;   (rvm-activate-corresponding-ruby))
 
 
 
@@ -488,6 +597,9 @@
 
 
 
+
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                          Java
 
@@ -501,8 +613,8 @@
 	      (highlight-symbol-mode t)
 	      (add-hook 'before-save-hook 'meghanada-code-beautify-before-save))))
 
-;; (use-package java-snippets
-;;   :ensure t)
+(use-package java-snippets
+  :ensure t)
 
 (use-package groovy-mode
   :ensure t)
@@ -510,50 +622,6 @@
   :ensure t)
 (use-package kotlin-mode
   :ensure t)
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                       CPP
-(use-package irony
-  :ensure t
-  :config
-  (add-hook 'c++-mode-hook 'irony-mode)
-  (add-hook 'c-mode-hook 'irony-mode)
-  (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
-
-(use-package irony-eldoc
-  :ensure t
-  :config
-  (add-hook 'irony-mode-hook #'irony-eldoc))
-
-;; (use-package rtags
-;;   :ensure t)
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                        Rust
-(use-package rust-mode
-  :ensure t)
-
-(use-package cargo
-  :ensure t
-  :config
-  (add-hook 'rust-mode-hook 'cargo-minor-mode))
-
-(use-package racer
-  :ensure t
-  :config
-  (add-hook 'rust-mode-hook #'racer-mode)
-  (add-hook 'racer-mode-hook #'eldoc-mode)
-  (setq racer-rust-src-path (getenv "RUST_SRC_PATH")))
-
-(use-package flycheck-rust
-  :ensure t
-  :config
-  (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
-
 
 
 
@@ -587,12 +655,12 @@
 (use-package clojure-mode
   :ensure t)
 
-;; (use-package clj-refactor
-;;   :ensure t
-;;   :config
-;;   (cljr-add-keybindings-with-prefix "C-c C-m")
-;;   (add-hook 'clojure-mode-hook #'clj-refactor-mode)
-;;   (add-hook 'clojure-mode-hook #'yas-minor-mode))
+(use-package clj-refactor
+  :ensure t
+  :config
+  (cljr-add-keybindings-with-prefix "C-c C-m")
+  (add-hook 'clojure-mode-hook #'clj-refactor-mode)
+  (add-hook 'clojure-mode-hook #'yas-minor-mode))
 
 (use-package cider
   :ensure t
@@ -600,9 +668,12 @@
   (define-key cider-mode-map (kbd "C-c M-l") 'cider-inspect-last-result)
   (define-key cider-mode-map (kbd "C-c M-v") 'cider-find-var)
   (define-key cider-mode-map (kbd "C-c M-f") 'cider-find-var)
+  (setq cider-repl-pop-to-buffer-on-connect 'display-only)
+  (setq cider-repl-use-pretty-printing t)
   (add-hook 'clojure-mode-hook #'cider-mode)
   (clojure/fancify-symbols 'cider-repl-mode)
   (clojure/fancify-symbols 'clojure-mode))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -639,6 +710,159 @@
 (use-package restclient
   :ensure t)
 
+(use-package markdown-mode
+  :ensure t
+  :config
+  (setq markdown-command "/usr/bin/pandoc"))
+
+(use-package easy-jekyll
+  :ensure t
+  :init
+  (setq easy-jekyll-basedir "~/work/alexafshar/alexafshar.com")
+  (setq easy-jekyll-url "http://alexafshar.com")
+  (setq easy-jekyll-sshdomain "alexafshar.com")
+  (setq easy-jekyll-root "/var/www/alexafshar.com"))
+
+(use-package js2-mode
+  :ensure t
+  :config
+  (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode)))
+
+(use-package tern
+  :ensure t
+  :config
+  (add-hook 'js2-mode-hook (lambda ()
+			     (tern-mode t))))
+
+(use-package company-tern
+  :ensure t
+  :config
+  (with-eval-after-load 'company
+    (add-to-list 'company-backends 'company-tern)))
+
+;; from the Tide README
+(defun setup-tide-mode ()
+  "Set up Tide mode."
+  (interactive)
+  (tide-setup)
+  (flycheck-mode +1)
+  (setq flycheck-check-syntax-automatically '(save-mode-enabled))
+  (eldoc-mode +1)
+  (tide-hl-identifier-mode +1)
+  (company-mode +1))
+
+(use-package tide
+  :ensure t
+  :config
+  (setq company-tooltip-align-annotations t)
+  (add-hook 'before-save-hook 'tide-format-before-save)
+  (add-hook 'typescript-mode-hook #'setup-tide-mode)
+  (add-hook 'js2-mode-hook #'setup-tide-mode))
+
+;; Skewer dependency
+;; (use-package simple-httpd
+;;   :ensure t)
+
+;; (use-package skewer-mode
+;;   :ensure t
+;;   :config
+;;   (skewer-setup))
+
+;; (use-package indium
+;;   :ensure t)
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                       CPP
+(use-package irony
+  :ensure t
+  :config
+  (add-hook 'c++-mode-hook 'irony-mode)
+  (add-hook 'c-mode-hook 'irony-mode)
+  (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
+
+(use-package irony-eldoc
+  :ensure t
+  :config
+  (add-hook 'irony-mode-hook #'irony-eldoc))
+
+;; (use-package company-irony
+;;   :ensure t
+;;   :config
+;;   (with-eval-after-load 'company '(add-to-list
+;; 				   'company-backends 'company-irony)))
+
+;; (use-package flycheck-irony
+;;   :ensure t
+;;   :config
+;;   (with-eval-after-load 'flycheck '(add-hook
+;; 			       'flycheck-mode-hook #'flycheck-irony-setup)))
+
+;; (use-package rtags
+;;   :ensure t)
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                        Rust
+(use-package rust-mode
+  :ensure t)
+
+(use-package cargo
+  :ensure t
+  :config
+  (add-hook 'rust-mode-hook 'cargo-minor-mode))
+
+(use-package racer
+  :ensure t
+  :config
+  (add-hook 'rust-mode-hook #'racer-mode)
+  (add-hook 'racer-mode-hook #'eldoc-mode)
+  (setq racer-rust-src-path (getenv "RUST_SRC_PATH")))
+
+(use-package flycheck-rust
+  :ensure t
+  :config
+  (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                          Social                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; (setq emacs-secrets-file "/home/asqrd/.emacs-secrets.el")
+
+;; (defun get-freenode-password (server)
+;;   (with-temp-buffer
+;;     (insert-file-contents-literally emacs-secrets-file)
+;;     (plist-get (read (buffer-string)) :freenode-password)))
+
+;; (use-package circe
+;;   :ensure t
+;;   :config
+;;   (setq circe-network-options
+;; 	'(("Freenode"
+;; 	   :tls t
+;; 	   :nick "asqrd_"
+;; 	   :sasl-username "asqrd_"
+;; 	   :sasl-password get-freenode-password
+;; 	   :channels ("#emacs"
+;; 		      "#vim"
+;; 		      "#emacs-elixir"
+;; 		      "#clojure-emacs"
+;; 		      "#Solus"
+;; 		      "#Solus-Chat"
+;; 		      "#Solus-Dev"
+;; 		      "#clojure"
+;; 		      "#clojure-beginners"
+;; 		      "#elixir-lang"
+;; 		      "#ruby"
+;; 		      "##java")))))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -652,9 +876,16 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   (quote
+    ("40da996f3246a3e99a2dff2c6b78e65307382f23db161b8316a5440b037eb72c" default)))
  '(package-selected-packages
    (quote
-    (drag-stuff sudoku typit typing ag emmet-mode multi-term try irony-eldoc irony kotlin-mode gradle-mode groovy-mode meghanada tabbar evil-tabs powerline evil-commentary evil counsel-projectile projectile ace-window ivy expand-region exec-path-from-shell dashboard flycheck company dracula-theme use-package))))
+    (org-journal markdown-mode android-mode drag-stuff sudoku typit typing ag emmet-mode multi-term try irony-eldoc irony kotlin-mode gradle-mode groovy-mode meghanada tabbar evil-tabs powerline evil-commentary evil counsel-projectile projectile ace-window ivy expand-region exec-path-from-shell dashboard flycheck company dracula-theme use-package)))
+ '(safe-local-variable-values
+   (quote
+    ((cider-refresh-after-fn . "integrant.repl/resume")
+     (cider-refresh-before-fn . "integrant.repl/suspend")))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
