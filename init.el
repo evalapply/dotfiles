@@ -49,7 +49,20 @@
 (add-hook 'prog-mode-hook 'linum-mode)
 
 ;; Electric pair mode in programming mode
-(add-hook 'prog-mode-hook #'electric-pair-mode)
+;; (add-hook 'prog-mode-hook #'electric-pair-mode)
+
+(use-package smartparens
+  :ensure t
+  :config
+  (add-hook 'prog-mode-hook #'smartparens-mode))
+
+;; (use-package highlight-indent-guides
+;;   :ensure t
+;;   :config
+;;   (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
+;;   (setq highlight-indent-guides-method 'character))
+
+;; (add-hook 'prog-mode-hook #'whitespace-mode)
 
 ;; required by many packages.
 (use-package dash
@@ -69,7 +82,9 @@
     (add-hook 'scheme-mode-hook #'paredit-mode)
     ;; Disable electric-pair when using paredit
     (add-hook 'paredit-mode-hook (lambda ()
-				   (electric-pair-mode -1))))
+				   (smartparens-mode -1))))
+
+
 
 ;; Move lines in visual mode up/down with shift-j/k
 ;; Selected words left and right with shift-h/l
@@ -104,6 +119,10 @@
 (setq auto-save-default nil)
 (setq make-backup-files nil)
 
+;; RealGUD debugger
+(use-package realgud
+  :ensure t)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                     Custom Functions                       ;;
@@ -113,6 +132,11 @@
   "Open my init file."
   (interactive)
   (find-file user-init-file))
+
+(defun alex/open-daily ()
+  "Open daily tasks file."
+  (interactive)
+  (find-file "~/org/daily.org"))
 
 (defun alex/clear-buffers ()
   "Clear all recent buffers."
@@ -152,10 +176,6 @@
   (setq nord-region-highlight "snowstorm")
   (setq nord-uniform-mode-lines t))
 
-
-;; (if (display-graphic-p)
-;;     (enable-theme 'nord)
-;;   (load-theme 'tsdh-dark))
 
 (set-frame-font "Fira Code Retina 18")
 (setq inhibit-startup-screen t)
@@ -269,9 +289,9 @@
   (setq ivy-initial-inputs-alist nil)
   (counsel-mode 1))
 
-;; (global-set-key (kbd "M-g w") 'avy-goto-word-1)
-;; (global-set-key (kbd "M-g g") 'avy-goto-line)
-;; (global-set-key (kbd "M-g c") 'avy-goto-char)
+(global-set-key (kbd "M-g w") 'avy-goto-word-1)
+(global-set-key (kbd "M-g g") 'avy-goto-line)
+(global-set-key (kbd "M-g c") 'avy-goto-char)
 
 ;; Helm - Yikes!
 ;; (use-package helm
@@ -390,7 +410,9 @@
   (evil-global-set-key 'visual (kbd "J") 'drag-stuff-down)
   (evil-global-set-key 'visual (kbd "K") 'drag-stuff-up)
   (evil-global-set-key 'visual (kbd "L") 'drag-stuff-right)
+  (evil-global-set-key 'normal ",d" 'alex/open-daily)
   (evil-global-set-key 'normal ",vr" 'alex/open-init))
+
 
 (use-package evil-escape
   :ensure t
@@ -426,6 +448,9 @@
 ;;                        Orgmode                             ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(use-package org-plus-contrib
+  :ensure t)
+
 (setq org-agenda-files (list "~/org/daily.org"
 			     "~/org/journal"))
 
@@ -451,19 +476,16 @@
 
 (defvar org-capture-templates '(("t" "Task [inbox]" entry
 			       (file+headline "~/org/inbox.org" "Tasks")
-			       "*** TODO %?\t:uncategorized:")
-				("n" "Note [inbox]" entry
-				 (file+headline "~/org/inbox.org" "Notes")
-				 "*** Note -> %?")
+			       "*** TODO %?")
+				("n" "Notebook [inbox]" entry
+				 (file+headline "~/org/notebooks/inbox.org" "Notebooks Inbox")
+				 "* %? Notebook \n** Tasks\n** Resources\n** Projects\n** Notes")
 				("i" "Idea [inbox]" entry
 				 (file+headline "~/org/inbox.org" "Ideas")
 				 "*** Idea - %?")
-				("r" "Reference [inbox]" entry
-				 (file+headline "~/org/inbox.org" "References")
-				 "*** Reference: %^G %?")
-				("o" "Other [inbox]" entry
-				 (file+headline "~/org/inbox.org" "Others")
-				 "*** Other *%?*")))
+				("r" "Resource [inbox]" entry
+				 (file+headline "~/org/inbox.org" "Resources")
+				 "** TOREAD:  %?\t\t%^G")))
 
 (global-set-key (kbd "C-x c") 'counsel-org-capture)
 
@@ -481,6 +503,28 @@
   (setq org-journal-dir "~/org/journal")
   (global-unset-key (kbd "C-c C-j")))
 
+;; (use-package org-brain
+;;   :ensure t
+;;   :init
+;;   (setq org-brain-path "~/org/brain")
+;;   (eval-after-load 'evil
+;;     (evil-set-initial-state 'org-brain-visualize-mode 'emacs))
+;;   :config
+;;   (setq org-id-track-globally t)
+;;   (setq org-id-locations-file "~/.emacs.d/.org-id-locations")
+;;   (push '("b" "Brain" plain (function org-brain-goto-end)
+;; 	  "* %i%?" :empty-lines 1)
+;; 	org-capture-templates)
+;;   (setq org-brain-visualize-default-choices 'all)
+;;   (setq org-brain-title-max-length 12))
+
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '(
+   (plantuml . t)))
+
+(setq org-plantuml-jar-path
+      (expand-file-name "~/work/plantuml/plantuml.jar"))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -573,6 +617,9 @@
   :ensure t
   :config
   '(rspec-install-snippets))
+
+(use-package ruby-end
+  :ensure t)
 
 ;; (defadvice inf-ruby-console-auto (before activate-rvm-for-robe activate)
 ;;   "Select correct ruby version."
@@ -673,6 +720,17 @@
   (add-hook 'clojure-mode-hook #'cider-mode)
   (clojure/fancify-symbols 'cider-repl-mode)
   (clojure/fancify-symbols 'clojure-mode))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                        Web
+(use-package slime
+  :ensure t
+  :config
+  (setq inferior-lisp-program "sbcl")
+  (setq slime-contribs '(slime-fancy)))
+;; set C-c Meta-j run 'slime'
 
 
 
@@ -829,6 +887,28 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                        Golang
+(use-package go-mode
+  :ensure t
+  :config
+  (setq gofmt-command "goimports")
+  (add-hook 'before-save-hook 'gofmt-before-save))
+
+(use-package company-go
+  :ensure t
+  :config
+  (add-hook 'go-mode-hook (lambda ()
+			    (set (make-local-variable 'company-backends) '(company-go))
+			    (company-mode))))
+
+(use-package go-eldoc
+  :ensure t
+  :config
+  (add-hook 'go-mode-hook 'go-eldoc-setup))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                          Social                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -881,7 +961,7 @@
     ("40da996f3246a3e99a2dff2c6b78e65307382f23db161b8316a5440b037eb72c" default)))
  '(package-selected-packages
    (quote
-    (org-journal markdown-mode android-mode drag-stuff sudoku typit typing ag emmet-mode multi-term try irony-eldoc irony kotlin-mode gradle-mode groovy-mode meghanada tabbar evil-tabs powerline evil-commentary evil counsel-projectile projectile ace-window ivy expand-region exec-path-from-shell dashboard flycheck company dracula-theme use-package)))
+    (org-plus-contrib go-eldoc company-go go-mode slime ruby-end smartparens highlight-indent-guides org-journal markdown-mode android-mode drag-stuff sudoku typit typing ag emmet-mode multi-term try irony-eldoc irony kotlin-mode gradle-mode groovy-mode meghanada tabbar evil-tabs powerline evil-commentary evil counsel-projectile projectile ace-window ivy expand-region exec-path-from-shell dashboard flycheck company dracula-theme use-package)))
  '(safe-local-variable-values
    (quote
     ((cider-refresh-after-fn . "integrant.repl/resume")
