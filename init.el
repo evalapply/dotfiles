@@ -56,14 +56,9 @@
   :config
   (add-hook 'prog-mode-hook #'smartparens-mode))
 
-;; (use-package highlight-indent-guides
-;;   :ensure t
-;;   :config
-;;   (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
-;;   (setq highlight-indent-guides-method 'character))
-
-;; (add-hook 'prog-mode-hook #'whitespace-mode)
-
+;; (setq-default c-basic-offset 4
+		;; tab-width 4
+		;; indent-tabs-mode t)
 ;; required by many packages.
 (use-package dash
   :ensure t)
@@ -80,18 +75,39 @@
     (add-hook 'lisp-interaction-mode-hook #'paredit-mode)
     (add-hook 'racket-mode-hook #'paredit-mode)
     (add-hook 'scheme-mode-hook #'paredit-mode)
-    ;; Disable electric-pair when using paredit
+    ;; Disable smartparens when using paredit
     (add-hook 'paredit-mode-hook (lambda ()
 				   (smartparens-mode -1))))
 
+;; Elisp mode keybindings
+(add-hook 'emacs-lisp-mode-hook
+		  (lambda ()
+			(define-key emacs-lisp-mode-map
+			  "\C-c\C-e" 'pp-eval-last-sexp)
+			(define-key emacs-lisp-mode-map
+			  "\C-c\C-s" 'eval-print-last-sexp)
+			(define-key emacs-lisp-mode-map
+			  "\C-c\C-d" 'eval-defun)
+			(define-key emacs-lisp-mode-map
+			  "\C-c\C-z" 'ielm)
+			(define-key emacs-lisp-mode-map
+			  "\C-c\C-k" 'eval-current-buffer)
+			(define-key emacs-lisp-mode-map
+			  "\C-c\C-a" 'pp-eval-expression)))
 
+(add-hook 'emacs-lisp-mode-hook 'eldoc-mode)
+
+;; (setq initial-major-mode 'emacs-lisp-mode)
+
+;; (setq initial-scratch-message "\
+;; Buffer Message.")
 
 ;; Move lines in visual mode up/down with shift-j/k
 ;; Selected words left and right with shift-h/l
 (use-package drag-stuff
   :ensure t
   :config
-  ;; (drag-stuff-define-keys)
+  (drag-stuff-define-keys)
   (drag-stuff-global-mode 1))
 
 ;; For Debugging
@@ -109,6 +125,7 @@
 
 (global-set-key (kbd "C-x i") 'indent-for-tab-command)
 
+
 ;; Log my coding with Wakatime
 (use-package wakatime-mode
   :ensure t
@@ -123,6 +140,14 @@
 (use-package realgud
   :ensure t)
 
+;; Lookup definition of word without leaving emacs
+(use-package define-word
+  :ensure t
+  :config
+  (global-set-key (kbd "C-x C-y") 'define-word-at-point))
+
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                     Custom Functions                       ;;
@@ -132,11 +157,6 @@
   "Open my init file."
   (interactive)
   (find-file user-init-file))
-
-(defun alex/open-daily ()
-  "Open daily tasks file."
-  (interactive)
-  (find-file "~/org/daily.org"))
 
 (defun alex/clear-buffers ()
   "Clear all recent buffers."
@@ -157,6 +177,136 @@
     (end-of-line)
     (open-line 1)))
 
+(defun alex/copy-line ()
+  "Copy current line."
+  (interactive)
+  (save-excursion
+	(back-to-indentation)
+	(kill-ring-save
+	 (point)
+	 (line-end-position)))
+  (message "1 line copied."))
+
+(defun alex/paste-below ()
+  (interactive)
+  (save-excursion
+	(end-of-line)
+	(newline-and-indent)
+	(yank))
+  (message "line pasted below."))
+
+(defun alex/paste-above ()
+  (interactive)
+  (save-excursion
+	(end-of-line)
+	(previous-line)
+	(indent-for-tab-command)
+	(yank))
+  (message "line pasted above."))
+
+(defun alex/jump-to-line-above ()
+  (interactive)
+  (previous-line)
+  (end-of-line)
+  (newline-and-indent))
+
+(defun alex/jump-to-line-below ()
+  "Jump to next line and indent."
+  (interactive)
+  (end-of-line)
+  (newline-and-indent))
+
+(defun alex/jump-out-of-function ()
+  "Jump down two lines and indent."
+  (interactive)
+  (next-line)
+  (end-of-line)
+  (newline-and-indent))
+
+;; Required for `forward-to-word` function.
+(require 'misc)
+
+(defun alex/move-forward (arg)
+  "Move forward to word, like vim.  Takes in ARG."
+  (interactive "^p")
+  (forward-to-word arg))
+
+
+;; Moves past last letter, that way can delete last character,
+;; which is often the reason for use.
+(defun alex/move-to-end-of-word (arg)
+  "Move to end of next word.  Takes in ARG."
+  (interactive "p")
+  (forward-word))
+
+;; Still needs work, parens work but not quotes yet.
+(defun alex/goto-match-paren (arg)
+  "Move to matching parenthesis.  Takes in ARG."
+  (interactive "p")
+  (cond ((looking-at "\\s\(") (forward-list 1) (backward-char 1))
+		((looking-at "\\s\)") (forward-char 1) (backward-list 1))
+		;;((looking-at "\\s\"\\s\-") (backward-sexp) (backward-char 1))
+		;;((looking-at "\\s\"") (forward-sexp) (backward-char 1))
+		(t (self-inset-command (or arg 1)))))
+
+(defun alex/jump-forward ()
+  "Jumps to definition like vim Ctrl-]"
+  (interactive)
+  (evil-emacs-state)
+  (call-interactively (key-binding (kbd "M-.")))
+  (evil-change-to-previous-state (other-buffer))
+  (evil-change-to-previous-state (current-buffer)))
+
+(defun alex/jump-backward ()
+  "Jumps back like vim Ctrl-o"
+  (interactive)
+  (evil-emacs-state)
+  (call-interactively (key-binding (kbd "M-,")))
+  (evil-change-to-previous-state (other-buffer))
+  (evil-change-to-previous-state (current-buffer)))
+
+
+;; Use before calling setup-tide-mode.
+;; (defun alex/make-jsconfig ()
+;;   "Create a jsconfig file."
+;;   (f-write-text "{\n\"compilerOptions\": {\n\t\"target" 'utf-8 "jsconfig.json"))
+
+
+;; Java experiments
+
+;; (create-file-buffer "blah.org")
+;; (f-write-text "Blah from emacs" 'utf-8 "blah.org")
+;; (defun alex/read-string ()
+;;   (interactive)
+;;   (message "String is %s" (read-string "Enter string: ")))
+
+;; (defun alex/java/create-class ()
+;;   (interactive)
+;;   (message "String is %s.java" (read-string "Enter class name: ")))
+
+;; (defun alex/java/create-project ()
+;;   (interactive)
+;;   (message "String is %s" (read-directory-name "Enter project directory name: ")))
+
+;; read-file-name, read-directory-name
+
+
+;; Keymapings of custom functions
+
+(global-set-key (kbd "C-x ,") 'recenter-top-bottom)
+(global-set-key (kbd "C-.") 'alex/paste-below)
+(global-set-key (kbd "C->") 'alex/paste-above)
+(global-set-key (kbd "C-l") 'alex/copy-line)
+(global-set-key (kbd "C-S-o") 'alex/insert-line-below)
+(global-set-key (kbd "C-o") 'alex/insert-line-above)
+(global-set-key (kbd "C-;") 'alex/jump-to-line-above)
+(global-set-key (kbd "C-:") 'alex/jump-to-line-below)
+(global-set-key (kbd "M-f") 'alex/move-forward)
+(global-set-key (kbd "C-%") 'alex/goto-match-paren)
+(global-set-key (kbd "M-'") 'alex/move-to-end-of-word)
+
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                       AESTHETICS                           ;;
@@ -164,17 +314,17 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; ;; Theme
-;; (use-package dracula-theme
-;;   :ensure t)
-
-(use-package nord-theme
+(use-package dracula-theme
   :ensure t)
 
-(with-eval-after-load 'nord-theme
-  (setq nord-comment-brightness 20)
-  ;; Highlight can be frost or snowstorm
-  (setq nord-region-highlight "snowstorm")
-  (setq nord-uniform-mode-lines t))
+;; (use-package nord-theme
+  ;; :ensure t)
+
+;; (with-eval-after-load 'nord-theme
+;;   (setq nord-comment-brightness 20)
+;;   ;; Highlight can be frost or snowstorm
+;;   (setq nord-region-highlight "snowstorm")
+;;   (setq nord-uniform-mode-lines t))
 
 
 (set-frame-font "Fira Code Retina 18")
@@ -276,7 +426,6 @@
   :bind
   ("C-s"	.	swiper)
   ("C-x C-r"	.	ivy-resume)
-  ("C-l"	.	ivy-alt-done)
   :config
   (ivy-mode 1)
   (setq ivy-use-virtual-buffers t)
@@ -334,11 +483,11 @@
 ;; Ace Window
 (use-package ace-window
   :ensure t
-  ;; :bind
-  ;; ("M-o" . ace-window)
+  :bind
+  ("M-o" . ace-window)
   :config
   ;; to use when 2 or less windows
-  ;; (setq aw-dispatch always t)
+  (setq aw-dispatch-always nil)
   (setq aw-keys '(?a ?s ?d ?f ?j ?k ?l ?\;)))
 
 
@@ -365,8 +514,14 @@
   (setq neo-smart-open t)
   (setq projectile-switch-project-action 'neotree-projectile-action)
   (setq neo-theme (if (display-graphic-p) 'icons 'arrow 'nerd)))
+
 (use-package all-the-icons
   :ensure t)
+
+(use-package imenu-list
+  :ensure t
+  :bind
+  ("C-x m" . imenu-list-smart-toggle))
 
 ;; Version Control
 (use-package magit
@@ -391,55 +546,57 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(use-package evil
-  :ensure t
-  :config
-  (evil-mode 1)
-  (evil-global-set-key 'normal ",s" 'save-buffer)
-  (evil-global-set-key 'normal ",q" 'save-buffers-kill-terminal)
-  (evil-global-set-key 'normal ",n" 'evil-ex-nohighlight)
-  (evil-global-set-key 'normal ",e" 'dired)
-  (evil-global-set-key 'normal ",t" 'multi-term-dedicated-toggle)
-  (evil-global-set-key 'normal ",f" 'counsel-find-file)
-  (evil-global-set-key 'normal ",b" 'switch-to-buffer)
-  (evil-global-set-key 'normal "]q" 'flycheck-next-error)
-  (evil-global-set-key 'normal "[q" 'flycheck-previous-error)
-  (evil-global-set-key 'normal (kbd "[ <SPC>") 'alex/insert-line-above)
-  (evil-global-set-key 'normal (kbd "] <SPC>") 'alex/insert-line-below)
-  (evil-global-set-key 'visual (kbd "H") 'drag-stuff-left)
-  (evil-global-set-key 'visual (kbd "J") 'drag-stuff-down)
-  (evil-global-set-key 'visual (kbd "K") 'drag-stuff-up)
-  (evil-global-set-key 'visual (kbd "L") 'drag-stuff-right)
-  (evil-global-set-key 'normal ",d" 'alex/open-daily)
-  (evil-global-set-key 'normal ",vr" 'alex/open-init))
+;; (use-package evil
+;;   :ensure t
+;;   :config
+;;   (evil-mode 1)
+;;   (evil-global-set-key 'normal (kbd "<SPC> s") 'save-buffer)
+;;   (evil-global-set-key 'normal (kbd "<SPC> q") 'save-buffers-kill-terminal)
+;;   (evil-global-set-key 'normal (kbd "<SPC> n") 'evil-ex-nohighlight)
+;;   (evil-global-set-key 'normal (kbd "<SPC> e") 'dired)
+;;   (evil-global-set-key 'normal (kbd "<SPC> t") 'multi-term-dedicated-toggle)
+;;   (evil-global-set-key 'normal (kbd "<SPC> f") 'counsel-find-file)
+;;   (evil-global-set-key 'normal (kbd "<SPC> b") 'switch-to-buffer)
+;;   (evil-global-set-key 'normal (kbd "] q") 'flycheck-next-error)
+;;   (evil-global-set-key 'normal (kbd "[ q") 'flycheck-previous-error)
+;;   (evil-global-set-key 'normal (kbd "[ <SPC>") 'alex/insert-line-above)
+;;   (evil-global-set-key 'normal (kbd "] <SPC>") 'alex/insert-line-below)
+;;   (evil-global-set-key 'visual (kbd "H") 'drag-stuff-left)
+;;   (evil-global-set-key 'visual (kbd "J") 'drag-stuff-down)
+;;   (evil-global-set-key 'visual (kbd "K") 'drag-stuff-up)
+;;   (evil-global-set-key 'visual (kbd "L") 'drag-stuff-right)
+;;   (evil-global-set-key 'normal (kbd "C-]") 'alex/jump-forward)
+;;   (evil-global-set-key 'normal (kbd "C-o") 'alex/jump-backward)
+;;   (evil-global-set-key 'normal (kbd "<SPC> d") 'alex/open-daily)
+;;   (evil-global-set-key 'normal (kbd "<SPC> vr") 'alex/open-init))
 
 
-(use-package evil-escape
-  :ensure t
-  :config
-  (setq-default evil-escape-key-sequence "jk")
-  (setq-default evil-escape-delay 0.2)
-  :init
-  (evil-escape-mode t))
+;; (use-package evil-escape
+;;   :ensure t
+;;   :config
+;;   (setq-default evil-escape-key-sequence "jk")
+;;   (setq-default evil-escape-delay 0.2)
+;;   :init
+;;   (evil-escape-mode t))
 
-(use-package evil-commentary
-  :ensure t
-  :config
-  (evil-commentary-mode))
+;; (use-package evil-commentary
+;;   :ensure t
+;;   :config
+;;   (evil-commentary-mode))
 
-(use-package evil-magit
-  :ensure t)
+;; (use-package evil-magit
+;;   :ensure t)
 
-(use-package evil-lion
-  :ensure t
-  :config
-  (evil-lion-mode))
+;; (use-package evil-lion
+;;   :ensure t
+;;   :config
+;;   (evil-lion-mode))
 
-;; Specific conflict with Neotree & Evil
-(evil-define-key 'normal neotree-mode-map (kbd "TAB") 'neotree-enter)
-(evil-define-key 'normal neotree-mode-map (kbd "SPC") 'neotree-enter)
-(evil-define-key 'normal neotree-mode-map (kbd "q") 'neotree-hide)
-(evil-define-key 'normal neotree-mode-map (kbd "RET") 'neotree-enter)
+;; ;; ;; Specific conflict with Neotree & Evil
+;; (evil-define-key 'normal neotree-mode-map (kbd "TAB") 'neotree-enter)
+;; (evil-define-key 'normal neotree-mode-map (kbd "SPC") 'neotree-enter)
+;; (evil-define-key 'normal neotree-mode-map (kbd "q") 'neotree-hide)
+;; (evil-define-key 'normal neotree-mode-map (kbd "RET") 'neotree-enter)
 
 
 
@@ -457,22 +614,6 @@
 (setq org-agenda-file-regexp "\\`[^.].*\\.org\\'\\|\\`[0-9]+\\'")
 
 (setq org-return-follows-link t)
-
-;; (setq org-agenda-files (list "~/org/daily.org"
-;; 			     "~/org/personal"
-;; 			     "~/org/work"))
-
-(defun my-org-keep-quiet (orig-fun &rest args)
-  (let ((buffers-pre (-filter #'get-file-buffer (org-agenda-files))))
-    (apply orig-fun args)
-    (let* ((buffers-post (-filter #'get-file-buffer (org-agenda-files)))
-           (buffers-new  (-difference buffers-post buffers-pre)))
-      (mapcar (lambda (file) (kill-buffer (get-file-buffer file))) buffers-new))))
-
-;; (advice-add 'org-agenda-list :around #'my-org-keep-quiet)
-;; (advice-add 'org-search-view :around #'my-org-keep-quiet)
-;; (advice-add 'org-tags-view :around #'my-org-keep-quiet)
-(advice-add 'dashboard-setup-startup-hook :around #'my-org-keep-quiet)
 
 (defvar org-capture-templates '(("t" "Task [inbox]" entry
 			       (file+headline "~/org/inbox.org" "Tasks")
@@ -502,6 +643,11 @@
   :config
   (setq org-journal-dir "~/org/journal")
   (global-unset-key (kbd "C-c C-j")))
+
+(with-eval-after-load 'org-journal
+
+  )
+
 
 ;; (use-package org-brain
 ;;   :ensure t
@@ -558,8 +704,7 @@
 
 (use-package elixir-mode
   :ensure t
-  :config
-  (add-to-list 'elixir-mode-hook 'alchemist-mode)
+  ;; (add-to-list 'elixir-mode-hook 'alchemist-mode)
   ;; (elixir/fancify-symbols 'elixir-mode)
   )
 
@@ -573,6 +718,7 @@
   (setq alchemist-execute-command "/home/asqrd/.kiex/elixirs/elixir-1.6.1/bin/elixir")
   (setq alchemist-compile-command "/home/asqrd/.kiex/elixirs/elixir-1.6.1/bin/elixirc")
   (setq alchemist-mix-command "/home/asqrd/.kiex/elixirs/elixir-1.6.1/bin/mix")
+  (add-hook 'elixir-mode-hook 'alchemist-mode)
   ;; Bind some Alchemist commands to more commonly used keys.
   (bind-keys :map alchemist-mode-map
              ("C-c C-l" . (lambda () (interactive)
@@ -581,12 +727,12 @@
   (bind-keys :map alchemist-mode-map
              ("C-x C-e" . alchemist-iex-send-current-line)))
 
+;; (eval-after-load 'company
+;;   '(push 'alchemist-company 'company-backends))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                          Ruby
-
-(defvar ruby-indent-level 2)
 
 (use-package inf-ruby
   :ensure t)
@@ -598,10 +744,6 @@
   :config
   (define-key ruby-mode-map (kbd "C-c C-c") 'robe-start)
   (add-hook 'ruby-mode-hook 'robe-mode))
-
-
-  ;; (eval-after-load 'company
-  ;;   '(push 'company-robe company-backends))
 
 (use-package rvm
   :ensure t
@@ -621,6 +763,20 @@
 (use-package ruby-end
   :ensure t)
 
+(use-package seeing-is-believing
+  :ensure t
+  :config
+  (setq seeing-is-believing-max-length 150
+	seeing-is-believing-max-results 10
+	seeing-is-believing-timeout 10.5
+	seeing-is-believing-alignment 'file)
+  (add-hook 'ruby-mode-hook 'seeing-is-believing))
+
+;;(defvar ruby-indent-level 2)
+
+;; (eval-after-load 'company
+;;   '(push 'company-robe company-backends))
+
 ;; (defadvice inf-ruby-console-auto (before activate-rvm-for-robe activate)
 ;;   "Select correct ruby version."
 ;;   (rvm-activate-corresponding-ruby))
@@ -630,43 +786,133 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                         Python
 (use-package elpy
-  :ensure t
-  :config
-  (setq elpy-rpc-python-command "python3")
-  (setq python-shell-interpreter "python3")
-  (elpy-enable))
-
-(use-package company-jedi
   :ensure t)
 
-(with-eval-after-load 'company
-  (add-to-list 'company-backends 'company-jedi))
 
+(elpy-enable)
 
+(setq elpy-rpc-python-command "python3")
 
+;; Ipython has issues
+(setq python-shell-interpreter "python3")
+
+;; (use-package jedi
+;;   :ensure t
+;;   :config
+;;   (add-hook 'python-mode-hook 'jedi:setup)
+;;   (setq jedi:complete-on-dot t))
+
+;; (use-package company-jedi
+  ;; :ensure t)
+
+;; (with-eval-after-load 'company
+  ;; (add-to-list 'company-backends 'company-jedi))
+
+;; Requires simple-httpd
+;; (use-package ein
+  ;; :ensure t)
 
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                          Java
 
+(use-package autodisass-java-bytecode
+  :ensure t
+  :defer t)
+
+(use-package google-c-style
+  :defer t
+  :ensure t
+  :commands
+  (google-set-c-style))
+
 (use-package meghanada
   :ensure t
-  :config
+  :defer t
+  :init
   (add-hook 'java-mode-hook
-	    (lambda ()
-	      (meghanada-mode t)
-	      (defvar c-basic-offset 2)
-	      (highlight-symbol-mode t)
-	      (add-hook 'before-save-hook 'meghanada-code-beautify-before-save))))
+			(lambda ()
+			  (google-set-c-style)
+			  (google-make-newline-indent)
+			  (meghanada-mode t)
+			  (smartparens-mode t)
+			  (rainbow-delimiters-mode t)
+			  (highlight-symbol-mode t)
+			  (add-hook 'before-save-hook 'meghanada-code-beautify-before-save)))
+  :config
+  ;; (use-package realgud
+  ;; 	:ensure t)
+  (setq indent-tabs-mode nil)
+  (setq tab-width 2)
+  (setq c-basic-offset 2)
+  (setq meghanada-server-remote-debug t)
+  (setq meghanada-javac-xlint "-Xlint:all,-processing")
+  :bind
+  (:map meghanada-mode-map
+		("C-S-t" . meghanada-switch-testcase)
+		("M-RET" . meghanada-local-variable)
+		("C-M-." . imenu)
+		("M-r" . meghanada-reference)
+		("M-t" . meghanada-typeinfo)
+		("C-z" . hydra-meghanada/body))
+  :commands
+  (meghanada-mode))
+
+(defhydra hydra-meghanada (:hint nil :exit t)
+;;"
+;; ^Edit^                           ^Tast or Task^
+;; ^^^^^^-------------------------------------------------------
+;; _f_: meghanada-compile-file      _m_: meghanada-restart
+;; _c_: meghanada-compile-project   _t_: meghanada-run-task
+;; _o_: meghanada-optimize-import   _j_: meghanada-run-junit-test-case
+;; _s_: meghanada-switch-test-case  _J_: meghanada-run-junit-class
+;; _v_: meghanada-local-variable    _R_: meghanada-run-junit-recent
+;; _i_: meghanada-import-all        _r_: meghanada-reference
+;; _g_: magit-status                _T_: meghanada-typeinfo
+;; _l_: helm-ls-git-ls
+;; _q_: exit
+;; "
+  ("f" meghanada-compile-file)
+  ("m" meghanada-restart)
+
+  ("c" meghanada-compile-project)
+  ("o" meghanada-optimize-import)
+  ("s" meghanada-switch-test-case)
+  ("v" meghanada-local-variable)
+  ("i" meghanada-import-all)
+
+  ("g" magit-status)
+  ;; ("l" helm-ls-git-ls)
+
+  ("t" meghanada-run-task)
+  ("T" meghanada-typeinfo)
+  ("j" meghanada-run-junit-test-case)
+  ("J" meghanada-run-junit-class)
+  ("R" meghanada-run-junit-recent)
+  ("r" meghanada-reference)
+
+  ("q" exit)
+  ("z" nil "leave"))
+
+
+  ;; :config
+  ;; (add-hook 'java-mode-hook
+  ;; 	    (lambda ()
+  ;; 	      (meghanada-mode t)
+  ;; 	      (defvar c-basic-offset 2)
+  ;; 	      (highlight-symbol-mode t)
+  ;; 	      (add-hook 'before-save-hook 'meghanada-code-beautify-before-save))))
 
 (use-package java-snippets
   :ensure t)
 
 (use-package groovy-mode
   :ensure t)
+
 (use-package gradle-mode
   :ensure t)
+
 (use-package kotlin-mode
   :ensure t)
 
@@ -702,15 +948,15 @@
 (use-package clojure-mode
   :ensure t)
 
-(use-package clj-refactor
-  :ensure t
-  :config
-  (cljr-add-keybindings-with-prefix "C-c C-m")
-  (add-hook 'clojure-mode-hook #'clj-refactor-mode)
-  (add-hook 'clojure-mode-hook #'yas-minor-mode))
+;; Problem with emacs 26.1...May not be needed with cider.
+;; (use-package clj-refactor
+  ;; :ensure t
+  ;; :config
+  ;; (cljr-add-keybindings-with-prefix "C-c C-m")
+  ;; (add-hook 'clojure-mode-hook #'clj-refactor-mode)
+  ;; (add-hook 'clojure-mode-hook #'yas-minor-mode))
 
 (use-package cider
-  :ensure t
   :config
   (define-key cider-mode-map (kbd "C-c M-l") 'cider-inspect-last-result)
   (define-key cider-mode-map (kbd "C-c M-v") 'cider-find-var)
@@ -724,14 +970,18 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                        Web
+;;                        Common Lisp
 (use-package slime
   :ensure t
   :config
-  (setq inferior-lisp-program "sbcl")
+  (setq inferior-lisp-program "ros run")
   (setq slime-contribs '(slime-fancy)))
-;; set C-c Meta-j run 'slime'
 
+;; set C-c Meta-j run 'slime'
+(define-key lisp-mode-map (kbd "C-c M-j") 'slime)
+
+;; Local HyperSpec
+(setq common-lisp-hyperspec-root (expand-file-name "~/.emacs.d/hyper_spec/HyperSpec/"))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -748,22 +998,36 @@
   (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.jsx\\'" . web-mode))
+  (add-hook 'web-mode-hook (lambda ()
+			     ;; Disable smartparens in html for mustache syntax bug.
+			     (when (string-equal "html" (file-name-extension buffer-file-name))
+			       (setq smartparens-mode nil))))
+  ;; (add-hook 'web-mode-hook (lambda ()
+			     ;; Use Tide in JSX files.
+  			     ;; (when (string-equal "jsx" (file-name-extension buffer-file-name))
+  			       ;; (setup-tide-mode))))
   (setq web-mode-markup-indent-offset 2)
   (setq web-mode-css-indent-offset 2)
   (setq web-mode-code-indent-offset 2)
   (setq web-mode-enable-auto-pairing t)
   (setq web-mode-enable-css-colorization t)
   (setq web-mode-enable-current-element-highlight t)
-  (setq web-mode-enable-current-column-highlight t))
+  (setq web-mode-enable-current-column-highlight t)
+  (setq web-mode-engines-alist
+	'(("django" . "\\.html\\'"))))
+;; ("jsx" . "\\.js[x]?\\'")
 
 (use-package emmet-mode
   :ensure t
   :config
   (add-hook 'web-mode-hook 'emmet-mode)
   (setq emmet-move-cursor-between-quotes t)
-  (defvar emmet-self-closing-tag-styles " /")
+  (setq emmet-self-closing-tag-style " /")
   (define-key emmet-mode-keymap (kbd "C-j") nil)
-  (define-key emmet-mode-keymap (kbd "C-,") 'emmet-expand-line))
+  (define-key emmet-mode-keymap (kbd "C-,") 'emmet-expand-line)
+  (add-hook 'emmet-mode-hook (lambda ()
+			       (setq emmet-indentation 2))))
 
 (use-package restclient
   :ensure t)
@@ -784,19 +1048,20 @@
 (use-package js2-mode
   :ensure t
   :config
-  (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode)))
+  (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
+  (setq js2-basic-offset 2))
 
-(use-package tern
+;; Async web server
+(use-package elnode
+  :ensure t)
+
+(use-package tide
   :ensure t
   :config
-  (add-hook 'js2-mode-hook (lambda ()
-			     (tern-mode t))))
-
-(use-package company-tern
-  :ensure t
-  :config
-  (with-eval-after-load 'company
-    (add-to-list 'company-backends 'company-tern)))
+  (setq company-tooltip-align-annotations t)
+  (add-hook 'before-save-hook 'tide-format-before-save)
+  (add-hook 'typescript-mode-hook #'setup-tide-mode)
+  (add-hook 'js2-mode-hook #'setup-tide-mode))
 
 ;; from the Tide README
 (defun setup-tide-mode ()
@@ -809,17 +1074,24 @@
   (tide-hl-identifier-mode +1)
   (company-mode +1))
 
-(use-package tide
-  :ensure t
-  :config
-  (setq company-tooltip-align-annotations t)
-  (add-hook 'before-save-hook 'tide-format-before-save)
-  (add-hook 'typescript-mode-hook #'setup-tide-mode)
-  (add-hook 'js2-mode-hook #'setup-tide-mode))
+;; {
+;;   "compilerOptions": {
+;;     "target": "es2017",
+;;     "allowSyntheticDefaultImports": true,
+;;     "noEmit": true,
+;;     "checkJS": true,
+;;     "jsx": "react",
+;;     "lib": ["dom", "es2017"]
+;;   }
+;; }
+
+
+;; (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
+;; (flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
 
 ;; Skewer dependency
-;; (use-package simple-httpd
-;;   :ensure t)
+(use-package simple-httpd
+  :ensure t)
 
 ;; (use-package skewer-mode
 ;;   :ensure t
@@ -827,9 +1099,21 @@
 ;;   (skewer-setup))
 
 ;; (use-package indium
-;;   :ensure t)
+;;   :ensure t
+;;   :config
+;;   (add-hook 'js2-mode-hook #'indium-interaction-mode))
 
+;; (use-package tern
+;;   :ensure t
+;;   :config
+;;   (add-hook 'js2-mode-hook (lambda ()
+;; 			     (tern-mode t))))
 
+;; (use-package company-tern
+;;   :ensure t
+;;   :config
+;;   (with-eval-after-load 'company
+;;     (add-to-list 'company-backends 'company-tern)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                       CPP
@@ -838,7 +1122,13 @@
   :config
   (add-hook 'c++-mode-hook 'irony-mode)
   (add-hook 'c-mode-hook 'irony-mode)
-  (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
+  (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+  (add-hook 'c++-mode-hook
+			(lambda ()
+			  (local-set-key (kbd "<F5>") 'recompile)))
+  (add-hook 'c-mode-hook
+			(lambda ()
+			  (local-set-key (kbd "<F5>") 'recompile))))
 
 (use-package irony-eldoc
   :ensure t
@@ -883,6 +1173,38 @@
   :ensure t
   :config
   (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                      Scheme
+(use-package geiser
+  :ensure t)
+
+;; (with-eval-after-load 'geiser
+  ;; (define-key geiser-mode-map (kbd "C-c C-c") 'scheme-send-last-sexp))
+
+
+(setq scheme-program-name "csi -:c")
+
+(require 'cmuscheme)
+
+;; Lovely function that calls chicken-doc to look up symbol at point
+;; Shamelessly stolen from wiki.call-cc.org/eggref/4/chicken-doc#emacs
+(defun chicken-doc (&optional obtain-function)
+  (interactive)
+  (let ((func (funcall (or obtain-function 'current-word))))
+	(when func
+	  (process-send-string (scheme-proc)
+						   (format "(require-library chicken-doc) ,doc %S\n" func))
+	  (save-selected-window
+		(select-window (display-buffer (get-buffer scheme-buffer) t))
+		(goto-char (point-max))))))
+
+;; Binds chicken doc to C-c d
+(with-eval-after-load 'cmuscheme
+  (define-key scheme-mode-map "\C-cd" 'chicken-doc)
+  (define-key scheme-mode-map "\C-cx" 'scheme-send-last-sexp))
 
 
 
@@ -956,16 +1278,49 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(cider-boot-parameters "cider repl -s wait")
+ '(counsel-mode t)
  '(custom-safe-themes
    (quote
-    ("40da996f3246a3e99a2dff2c6b78e65307382f23db161b8316a5440b037eb72c" default)))
+    ("617341f1be9e584692e4f01821716a0b6326baaec1749e15d88f6cc11c288ec6" "ab04c00a7e48ad784b52f34aa6bfa1e80d0c3fcacc50e1189af3651013eb0d58" "a0feb1322de9e26a4d209d1cfa236deaf64662bb604fa513cca6a057ddf0ef64" "7356632cebc6a11a87bc5fcffaa49bae528026a78637acd03cae57c091afd9b9" "5e3fc08bcadce4c6785fc49be686a4a82a356db569f55d411258984e952f194a" "04dd0236a367865e591927a3810f178e8d33c372ad5bfef48b5ce90d4b476481" "7153b82e50b6f7452b4519097f880d968a6eaf6f6ef38cc45a144958e553fbc6" "d6db7498e2615025c419364764d5e9b09438dfe25b044b44e1f336501acd4f5b" "59171e7f5270c0f8c28721bb96ae56d35f38a0d86da35eab4001aebbd99271a8" "a24c5b3c12d147da6cef80938dca1223b7c7f70f2f382b26308eba014dc4833a" "b97a01622103266c1a26a032567e02d920b2c697ff69d40b7d9956821ab666cc" "40da996f3246a3e99a2dff2c6b78e65307382f23db161b8316a5440b037eb72c" default)))
+ '(geiser-default-implementation (quote chicken))
+ '(geiser-implementations-alist
+   (quote
+    (((regexp "\\.scm$")
+      chicken)
+     ((regexp "\\.ss$")
+      racket)
+     ((regexp "\\.rkt$")
+      racket)
+     ((regexp "\\.scm$")
+      guile)
+     ((regexp "\\.release-info$")
+      chicken)
+     ((regexp "\\.meta$")
+      chicken)
+     ((regexp "\\.setup$")
+      chicken)
+     ((regexp "\\.ss$")
+      chez)
+     ((regexp "\\.def$")
+      chez)
+     ((regexp "\\.scm$")
+      mit)
+     ((regexp "\\.pkg$")
+      mit)
+     ((regexp "\\.scm$")
+      chibi)
+     ((regexp "\\.sld$")
+      chibi))))
  '(package-selected-packages
    (quote
-    (org-plus-contrib go-eldoc company-go go-mode slime ruby-end smartparens highlight-indent-guides org-journal markdown-mode android-mode drag-stuff sudoku typit typing ag emmet-mode multi-term try irony-eldoc irony kotlin-mode gradle-mode groovy-mode meghanada tabbar evil-tabs powerline evil-commentary evil counsel-projectile projectile ace-window ivy expand-region exec-path-from-shell dashboard flycheck company dracula-theme use-package)))
+    (alect-themes racket-mode skewer-mode impatient-mode simple-httpd clj-refactor cider alchemist elixir-mode magit define-word lorem-ipsum elnode seeing-is-believing imenu-list geiser org-plus-contrib go-eldoc company-go go-mode slime ruby-end smartparens highlight-indent-guides org-journal markdown-mode android-mode drag-stuff sudoku typit typing ag emmet-mode multi-term try irony-eldoc irony kotlin-mode gradle-mode groovy-mode meghanada tabbar evil-tabs powerline evil-commentary evil counsel-projectile projectile ace-window ivy expand-region exec-path-from-shell dashboard flycheck company dracula-theme use-package)))
  '(safe-local-variable-values
    (quote
     ((cider-refresh-after-fn . "integrant.repl/resume")
-     (cider-refresh-before-fn . "integrant.repl/suspend")))))
+     (cider-refresh-before-fn . "integrant.repl/suspend"))))
+ '(wakatime-cli-path "/usr/bin/wakatime")
+ '(wakatime-python-bin nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
