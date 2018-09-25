@@ -2,15 +2,10 @@
 " Begin vim-plug load
 call plug#begin('~/.vim/plugged')
 
-  "           Themes
-  "##############################
-  Plug 'dracula/vim'
-  Plug 'arcticicestudio/nord-vim'
-
 
   "      File Navigation
   "##############################
-  Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install -all' }
+  Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
   Plug 'tpope/vim-projectionist'
   Plug 'scrooloose/nerdtree'
   Plug 'wincent/Command-T'
@@ -22,7 +17,7 @@ call plug#begin('~/.vim/plugged')
   Plug 'tpope/vim-commentary'
   Plug 'kien/rainbow_parentheses.vim'
   Plug 'guns/vim-surround'
-  Plug 'jiangmiao/auto-pairs'
+  " Plug 'jiangmiao/auto-pairs'
   Plug 'tpope/vim-endwise'
   Plug 'junegunn/vim-easy-align'
 
@@ -45,7 +40,7 @@ call plug#begin('~/.vim/plugged')
   "    Code Syntax/Navigation
   "##############################
   Plug 'ludovicchabant/vim-gutentags'
-  Plug 'w0rp/ale'
+"  Plug 'w0rp/ale'
 
 
 
@@ -66,7 +61,7 @@ call plug#begin('~/.vim/plugged')
   " Elixir
   Plug 'slashmili/alchemist.vim'
   Plug 'c-brenn/phoenix.vim'
-  Plug 'elixir-lang/vim-elixir'
+"  Plug 'elixir-lang/vim-elixir'
   Plug 'thinca/vim-ref'
 
   " Ruby
@@ -80,7 +75,7 @@ call plug#begin('~/.vim/plugged')
   Plug 'jebberjeb/grimoire.vim'
 
   " Java
-  Plug 'artur-shaik/vim-javacomplete2'
+"  Plug 'artur-shaik/vim-javacomplete2'
   
   " CPP
   Plug 'Rip-Rip/clang_complete'
@@ -88,7 +83,7 @@ call plug#begin('~/.vim/plugged')
 
   "       Misc Utilities
   "##############################
-  Plug 'wakatime/vim-wakatime'
+"  Plug 'wakatime/vim-wakatime'
 call plug#end()
 
 " Basic
@@ -112,7 +107,8 @@ set undodir=~/.vim/.undo//
 
 " Remaps
 " ####################
-let mapleader="," " Leader key is ,
+" Leader key is space
+let mapleader="!"
 " Cursor line
 set cul
 "
@@ -128,9 +124,9 @@ vmap v <Esc>
 tnoremap jk <C-w>N
 
 " ,s to save
-map <leader>s :w<CR>
+"map <leader>s :w<CR>
 " ,q to quit
-map <leader>q :q<CR>
+"map <leader>q :q<CR>
 " Get rid of search highlight
 nmap <leader>n :noh<CR> 
 " Close quickfix window
@@ -147,9 +143,10 @@ nmap <leader>e :Explore<CR>
 " map <leader>b :buffers<CR>
 " Using CommandT as it allows to select buffer
 " instead of just listing
-map <leader>b :CommandTBuffer<CR>
+nmap <silent> <Leader>b <Plug>(CommandTBuffer)
 " Help tags
-map <leader>h :CommandTBuffer<CR>
+nmap <silent> <Leader>h <Plug>(CommandTHelp)
+nmap <silent> <Leader>j <Plug>(CommandTJump)
 " Use CtrlG to cancel
 let g:CommandTCancelMap='<C-g>'
 " New tab with current file
@@ -178,6 +175,9 @@ tnoremap <C-j> <C-w>N<C-w>j
 tnoremap <C-k> <C-w>N<C-w>k
 tnoremap <C-l> <C-w>N<C-w>l
 
+" Easy Align
+xmap ga <Plug>(EasyAlign)
+nmap ga <Plug>(EasyAlign)
 
 
 
@@ -255,6 +255,6 @@ autocmd FileType java setlocal omnifunc=javacomplete#Complete
 
 " Theming
 " ####################
-colorscheme nord
+"colorscheme nord
 set t_Co=256
 " set termguicolors

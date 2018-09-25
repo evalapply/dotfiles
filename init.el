@@ -79,6 +79,8 @@
     (add-hook 'paredit-mode-hook (lambda ()
 				   (smartparens-mode -1))))
 
+
+
 ;; Elisp mode keybindings
 (add-hook 'emacs-lisp-mode-hook
 		  (lambda ()
@@ -93,9 +95,19 @@
 			(define-key emacs-lisp-mode-map
 			  "\C-c\C-k" 'eval-current-buffer)
 			(define-key emacs-lisp-mode-map
-			  "\C-c\C-a" 'pp-eval-expression)))
+			  "\C-c\C-a" 'pp-eval-expression)
+			(define-key emacs-lisp-mode-map
+			  "\C-c\C-b" 'edebug-defun)))
 
 (add-hook 'emacs-lisp-mode-hook 'eldoc-mode)
+
+;; Package that suggest elisp functions based on inputs and outputs.
+(use-package suggest
+  :ensure t)
+
+;; Package that defines elisp functions based on keyboard macros.
+(use-package elmacro
+  :ensure t)
 
 ;; (setq initial-major-mode 'emacs-lisp-mode)
 
@@ -121,16 +133,17 @@
 (use-package multi-term
   :ensure t
   :config
+  (setq multi-term-dedicated-select-after-open-p t)
   (global-set-key (kbd "C-x t") 'multi-term-dedicated-toggle))
 
 (global-set-key (kbd "C-x i") 'indent-for-tab-command)
 
 
 ;; Log my coding with Wakatime
-(use-package wakatime-mode
-  :ensure t
-  :config
-  (global-wakatime-mode))
+;; (use-package wakatime-mode
+  ;; :ensure t
+  ;; :config
+  ;; (global-wakatime-mode))
 
 ;; autosaves and backups
 (setq auto-save-default nil)
@@ -327,7 +340,7 @@
 ;;   (setq nord-uniform-mode-lines t))
 
 
-(set-frame-font "Fira Code Retina 18")
+(set-frame-font "Fira Code 18")
 (setq inhibit-startup-screen t)
 (setq ring-bell-function 'ignore)
 (menu-bar-mode -1)
@@ -366,7 +379,8 @@
 	company-minimum-prefix-length 1
 	company-show-numbers t
 	company-tooltip-align-annotations t
-	company-tooltip-limit 10)
+	company-tooltip-limit 10
+	company-global-modes '(not eshell-mode term-mode shell-mode))
   (define-key company-active-map (kbd "<return>") nil)
   (define-key company-active-map (kbd "RET") nil)
   (define-key company-active-map (kbd "TAB") #'company-complete-selection)
@@ -608,6 +622,8 @@
 (use-package org-plus-contrib
   :ensure t)
 
+
+
 (setq org-agenda-files (list "~/org/daily.org"
 			     "~/org/journal"))
 
@@ -630,11 +646,17 @@
 
 (global-set-key (kbd "C-x c") 'counsel-org-capture)
 
+(global-set-key (kbd "M-# q") 'quick-calc)
+
 (use-package org-bullets
   :ensure t
   :config
   (add-hook 'org-mode-hook (lambda ()
-			     (org-bullets-mode 1))))
+			     (visual-line-mode)
+			     (org-indent-mode)
+			     (org-bullets-mode 1)
+			     ;; (flyspell-mode)
+			     (ispell-minor-mode))))
 
 (use-package org-journal
   :ensure t
@@ -664,13 +686,24 @@
 ;;   (setq org-brain-visualize-default-choices 'all)
 ;;   (setq org-brain-title-max-length 12))
 
+(use-package ob-elixir
+  :ensure t)
+
 (org-babel-do-load-languages
  'org-babel-load-languages
  '(
-   (plantuml . t)))
+   (java . t)
+   (ruby . t)
+   (scheme . t)
+   (lisp . t)
+   (emacs-lisp . t)
+   (elixir . t)
+   (C . t)
+   (python . t)
+   (js . t)))
 
-(setq org-plantuml-jar-path
-      (expand-file-name "~/work/plantuml/plantuml.jar"))
+;; (setq org-plantuml-jar-path
+      ;; (expand-file-name "~/work/plantuml/plantuml.jar"))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -704,7 +737,8 @@
 
 (use-package elixir-mode
   :ensure t
-  ;; (add-to-list 'elixir-mode-hook 'alchemist-mode)
+  :config
+  (add-to-list 'elixir-mode-hook 'alchemist-mode)
   ;; (elixir/fancify-symbols 'elixir-mode)
   )
 
@@ -714,10 +748,10 @@
   :ensure t
   :commands alchemist-mode
   :config
-  (setq alchemist-iex-program-name "/home/asqrd/.kiex/elixirs/elixir-1.6.1/bin/iex")
-  (setq alchemist-execute-command "/home/asqrd/.kiex/elixirs/elixir-1.6.1/bin/elixir")
-  (setq alchemist-compile-command "/home/asqrd/.kiex/elixirs/elixir-1.6.1/bin/elixirc")
-  (setq alchemist-mix-command "/home/asqrd/.kiex/elixirs/elixir-1.6.1/bin/mix")
+  (setq alchemist-iex-program-name "/home/asqrd/.asdf/shims/iex")
+  (setq alchemist-execute-command "/home/asqrd/.asdf/shims/elixir")
+  (setq alchemist-compile-command "/home/asqrd/.asdf/shims/elixirc")
+  (setq alchemist-mix-command "/home/asqrd/.asdf/shims/mix")
   (add-hook 'elixir-mode-hook 'alchemist-mode)
   ;; Bind some Alchemist commands to more commonly used keys.
   (bind-keys :map alchemist-mode-map
@@ -859,6 +893,9 @@
   :commands
   (meghanada-mode))
 
+(use-package hydra
+  :ensure t)
+
 (defhydra hydra-meghanada (:hint nil :exit t)
 ;;"
 ;; ^Edit^                           ^Tast or Task^
@@ -962,7 +999,8 @@
   (define-key cider-mode-map (kbd "C-c M-v") 'cider-find-var)
   (define-key cider-mode-map (kbd "C-c M-f") 'cider-find-var)
   (setq cider-repl-pop-to-buffer-on-connect 'display-only)
-  (setq cider-repl-use-pretty-printing t)
+  ;; (setq cider-repl-use-pretty-printing t)
+  (setq cider-repl-use-clojure-font-lock t)
   (add-hook 'clojure-mode-hook #'cider-mode)
   (clojure/fancify-symbols 'cider-repl-mode)
   (clojure/fancify-symbols 'clojure-mode))
@@ -975,13 +1013,18 @@
   :ensure t
   :config
   (setq inferior-lisp-program "ros run")
+  ;; (setq inferior-lisp-program "clisp")
   (setq slime-contribs '(slime-fancy)))
 
 ;; set C-c Meta-j run 'slime'
 (define-key lisp-mode-map (kbd "C-c M-j") 'slime)
+;; set C-c C-p eval and print result in buffer.
+(define-key lisp-mode-map (kbd "C-c C-p") 'slime-eval-print-last-expression)
 
+;; Using CLHS, no need for local hyper_spec
+;; use C-c C-d h *name-of-function* to launch hyperspec
 ;; Local HyperSpec
-(setq common-lisp-hyperspec-root (expand-file-name "~/.emacs.d/hyper_spec/HyperSpec/"))
+;; (setq common-lisp-hyperspec-root (expand-file-name "~/.emacs.d/hyper_spec/HyperSpec/"))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -998,7 +1041,7 @@
   (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.jsx\\'" . web-mode))
+  ;; (add-to-list 'auto-mode-alist '("\\.jsx\\'" . web-mode))
   (add-hook 'web-mode-hook (lambda ()
 			     ;; Disable smartparens in html for mustache syntax bug.
 			     (when (string-equal "html" (file-name-extension buffer-file-name))
@@ -1016,12 +1059,15 @@
   (setq web-mode-enable-current-column-highlight t)
   (setq web-mode-engines-alist
 	'(("django" . "\\.html\\'"))))
-;; ("jsx" . "\\.js[x]?\\'")
+
+;; (flycheck-add-mode 'javascript-eslint 'web-mode)
+;; (flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
 
 (use-package emmet-mode
   :ensure t
   :config
   (add-hook 'web-mode-hook 'emmet-mode)
+  (add-hook 'js2-jsx-mode-hook 'emmet-mode)
   (setq emmet-move-cursor-between-quotes t)
   (setq emmet-self-closing-tag-style " /")
   (define-key emmet-mode-keymap (kbd "C-j") nil)
@@ -1040,7 +1086,7 @@
 (use-package easy-jekyll
   :ensure t
   :init
-  (setq easy-jekyll-basedir "~/work/alexafshar/alexafshar.com")
+  (setq easy-jekyll-basedir "~/work/alexafshar.com")
   (setq easy-jekyll-url "http://alexafshar.com")
   (setq easy-jekyll-sshdomain "alexafshar.com")
   (setq easy-jekyll-root "/var/www/alexafshar.com"))
@@ -1049,6 +1095,7 @@
   :ensure t
   :config
   (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
+  (add-to-list 'auto-mode-alist '("\\.jsx\\'" . js2-jsx-mode))
   (setq js2-basic-offset 2))
 
 ;; Async web server
@@ -1061,6 +1108,7 @@
   (setq company-tooltip-align-annotations t)
   (add-hook 'before-save-hook 'tide-format-before-save)
   (add-hook 'typescript-mode-hook #'setup-tide-mode)
+  (add-hook 'js2-jsx-mode #'setup-tide-mode)
   (add-hook 'js2-mode-hook #'setup-tide-mode))
 
 ;; from the Tide README
@@ -1086,17 +1134,15 @@
 ;; }
 
 
-;; (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
-;; (flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
 
 ;; Skewer dependency
 (use-package simple-httpd
   :ensure t)
 
 ;; (use-package skewer-mode
-;;   :ensure t
-;;   :config
-;;   (skewer-setup))
+  ;; :ensure t
+  ;; :config
+  ;; (skewer-setup))
 
 ;; (use-package indium
 ;;   :ensure t
@@ -1116,7 +1162,7 @@
 ;;     (add-to-list 'company-backends 'company-tern)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                       CPP
+;;                       C-CPP
 (use-package irony
   :ensure t
   :config
@@ -1220,6 +1266,7 @@
   :ensure t
   :config
   (add-hook 'go-mode-hook (lambda ()
+			    (shell-copy-environment-variable "GOPATH")
 			    (set (make-local-variable 'company-backends) '(company-go))
 			    (company-mode))))
 
@@ -1314,10 +1361,13 @@
       chibi))))
  '(package-selected-packages
    (quote
-    (alect-themes racket-mode skewer-mode impatient-mode simple-httpd clj-refactor cider alchemist elixir-mode magit define-word lorem-ipsum elnode seeing-is-believing imenu-list geiser org-plus-contrib go-eldoc company-go go-mode slime ruby-end smartparens highlight-indent-guides org-journal markdown-mode android-mode drag-stuff sudoku typit typing ag emmet-mode multi-term try irony-eldoc irony kotlin-mode gradle-mode groovy-mode meghanada tabbar evil-tabs powerline evil-commentary evil counsel-projectile projectile ace-window ivy expand-region exec-path-from-shell dashboard flycheck company dracula-theme use-package)))
+    (indium paradox esh-autosuggest elmacro suggest sly-repl-ansi-color sly-quicklisp sly nasm-mode org-wc writegood-mode ob-elixir clojure-mode alect-themes racket-mode skewer-mode impatient-mode simple-httpd clj-refactor cider alchemist elixir-mode magit define-word lorem-ipsum elnode seeing-is-believing imenu-list geiser org-plus-contrib go-eldoc company-go go-mode slime ruby-end smartparens highlight-indent-guides org-journal markdown-mode android-mode drag-stuff sudoku typit typing ag emmet-mode multi-term try irony-eldoc irony kotlin-mode gradle-mode groovy-mode meghanada tabbar evil-tabs powerline evil-commentary evil counsel-projectile projectile ace-window ivy expand-region exec-path-from-shell dashboard flycheck company dracula-theme use-package)))
  '(safe-local-variable-values
    (quote
-    ((cider-refresh-after-fn . "integrant.repl/resume")
+    ((cider-cljs-lein-repl . "(do (user/go) (user/cljs-repl))")
+     (cider-refresh-after-fn . "reloaded.repl/resume")
+     (cider-refresh-before-fn . "reloaded.repl/suspend")
+     (cider-refresh-after-fn . "integrant.repl/resume")
      (cider-refresh-before-fn . "integrant.repl/suspend"))))
  '(wakatime-cli-path "/usr/bin/wakatime")
  '(wakatime-python-bin nil))
