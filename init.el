@@ -12,12 +12,10 @@
  package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
                     ("org" . "http://orgmode.org/elpa/")
                     ("melpa" . "http://melpa.org/packages/")
-		    ("elpy" . "https://jorgenschaefer.github.io/packages/")
                     ("melpa-stable" . "http://stable.melpa.org/packages/"))
  package-archive-priorities '(("melpa-stable" . 10)
 			      ("melpa" . 5)
 			      ("gnu" . 1)))
-
 (package-initialize)
 (when (not package-archive-contents)
   (package-refresh-contents)
@@ -34,9 +32,7 @@
 (prefer-coding-system			'utf-8)
 (setq default-process-coding-system	'(utf-8-unix . utf-8-unix))
 
-;; (show-paren-mode 1)
-;; (setq show-paren-delay 0)
-
+;; Delete trailing space on save
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
 ;; after copy Ctrl+c in Linux X11, you can paste by `yank' in emacs
@@ -48,20 +44,16 @@
 ;; Line numbers in programming mode
 (add-hook 'prog-mode-hook 'linum-mode)
 
-;; Electric pair mode in programming mode
-;; (add-hook 'prog-mode-hook #'electric-pair-mode)
-
 (use-package smartparens
   :ensure t
   :config
   (add-hook 'prog-mode-hook #'smartparens-mode))
 
-;; (setq-default c-basic-offset 4
-		;; tab-width 4
-		;; indent-tabs-mode t)
-;; required by many packages.
-(use-package dash
-  :ensure t)
+(use-package rainbow-delimiters
+  :ensure t
+  :config
+  (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
+
 
 ;; Paredit for lisp/schemes
 (use-package paredit
@@ -79,8 +71,74 @@
     (add-hook 'paredit-mode-hook (lambda ()
 				   (smartparens-mode -1))))
 
+;; Move lines in visual mode up/down with shift-j/k
+;; Selected words left and right with shift-h/l
+(use-package drag-stuff
+  :ensure t
+  :config
+  (drag-stuff-define-keys)
+  (drag-stuff-global-mode 1))
+
+;; For Debugging
+(use-package esup
+  :ensure t)
+
+;; For trying packages
+(use-package try
+  :ensure t)
+
+(use-package multi-term
+  :ensure t
+  :config
+  (setq multi-term-dedicated-select-after-open-p t)
+  (global-set-key (kbd "C-x t") 'multi-term-dedicated-toggle))
+
+(global-set-key (kbd "C-x i") 'indent-for-tab-command)
+
+;; autosaves and backups
+(setq auto-save-default nil)
+(setq make-backup-files nil)
+
+;; RealGUD debugger
+(use-package realgud
+  :ensure t)
+
+;; Lookup definition of word without leaving emacs
+(use-package define-word
+  :ensure t
+  :config
+  (global-set-key (kbd "C-x C-y") 'define-word-at-point))
 
 
+(use-package which-key
+  :ensure t
+  :init
+  (which-key-mode)
+  :config
+  (define-key help-map "\C-h" 'which-key-C-h-dispatch))
+
+
+(use-package exec-path-from-shell
+  :ensure t
+  :config
+  (when (memq window-system '(mac ns x))
+    (exec-path-from-shell-initialize))
+  (exec-path-from-shell-copy-env "KIEX_HOME")
+  (exec-path-from-shell-copy-env "MIX_ARCHIVES")
+  (exec-path-from-shell-copy-env "kotlinc")
+  (exec-path-from-shell-copy-env "RUST_SRC_PATH")
+  (exec-path-from-shell-copy-env "GOPATH"))
+
+(use-package expand-region
+  :ensure t
+  :bind
+  ("C-=" . er/expand-region))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                       Emacs Lisp                           ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Elisp mode keybindings
 (add-hook 'emacs-lisp-mode-hook
 		  (lambda ()
@@ -109,88 +167,36 @@
 (use-package elmacro
   :ensure t)
 
-;; (setq initial-major-mode 'emacs-lisp-mode)
-
-;; (setq initial-scratch-message "\
-;; Buffer Message.")
-
-;; Move lines in visual mode up/down with shift-j/k
-;; Selected words left and right with shift-h/l
-(use-package drag-stuff
-  :ensure t
-  :config
-  (drag-stuff-define-keys)
-  (drag-stuff-global-mode 1))
-
-;; For Debugging
-(use-package esup
-  :ensure t)
-
-;; For trying packages
-(use-package try
-  :ensure t)
-
-(use-package multi-term
-  :ensure t
-  :config
-  (setq multi-term-dedicated-select-after-open-p t)
-  (global-set-key (kbd "C-x t") 'multi-term-dedicated-toggle))
-
-(global-set-key (kbd "C-x i") 'indent-for-tab-command)
-
-
-;; Log my coding with Wakatime
-;; (use-package wakatime-mode
-  ;; :ensure t
-  ;; :config
-  ;; (global-wakatime-mode))
-
-;; autosaves and backups
-(setq auto-save-default nil)
-(setq make-backup-files nil)
-
-;; RealGUD debugger
-(use-package realgud
-  :ensure t)
-
-;; Lookup definition of word without leaving emacs
-(use-package define-word
-  :ensure t
-  :config
-  (global-set-key (kbd "C-x C-y") 'define-word-at-point))
-
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                     Custom Functions                       ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun alex/open-init ()
+(defun asqrd/open-init ()
   "Open my init file."
   (interactive)
   (find-file user-init-file))
 
-(defun alex/clear-buffers ()
+(defun asqrd/clear-buffers ()
   "Clear all recent buffers."
   (interactive)
   (setq recentf-list '()))
 
-(defun alex/insert-line-above ()
+(defun asqrd/insert-line-above ()
   "Insert a line above current line."
   (interactive)
   (save-excursion
     (end-of-line 0)
     (open-line 1)))
 
-(defun alex/insert-line-below ()
+(defun asqrd/insert-line-below ()
   "Insert a line below current line."
   (interactive)
   (save-excursion
     (end-of-line)
     (open-line 1)))
 
-(defun alex/copy-line ()
+(defun asqrd/copy-line ()
   "Copy current line."
   (interactive)
   (save-excursion
@@ -200,7 +206,7 @@
 	 (line-end-position)))
   (message "1 line copied."))
 
-(defun alex/paste-below ()
+(defun asqrd/paste-below ()
   (interactive)
   (save-excursion
 	(end-of-line)
@@ -208,7 +214,7 @@
 	(yank))
   (message "line pasted below."))
 
-(defun alex/paste-above ()
+(defun asqrd/paste-above ()
   (interactive)
   (save-excursion
 	(end-of-line)
@@ -217,19 +223,19 @@
 	(yank))
   (message "line pasted above."))
 
-(defun alex/jump-to-line-above ()
+(defun asqrd/jump-to-line-above ()
   (interactive)
   (previous-line)
   (end-of-line)
   (newline-and-indent))
 
-(defun alex/jump-to-line-below ()
+(defun asqrd/jump-to-line-below ()
   "Jump to next line and indent."
   (interactive)
   (end-of-line)
   (newline-and-indent))
 
-(defun alex/jump-out-of-function ()
+(defun asqrd/jump-out-of-function ()
   "Jump down two lines and indent."
   (interactive)
   (next-line)
@@ -239,7 +245,7 @@
 ;; Required for `forward-to-word` function.
 (require 'misc)
 
-(defun alex/move-forward (arg)
+(defun asqrd/move-forward (arg)
   "Move forward to word, like vim.  Takes in ARG."
   (interactive "^p")
   (forward-to-word arg))
@@ -247,13 +253,13 @@
 
 ;; Moves past last letter, that way can delete last character,
 ;; which is often the reason for use.
-(defun alex/move-to-end-of-word (arg)
+(defun asqrd/move-to-end-of-word (arg)
   "Move to end of next word.  Takes in ARG."
   (interactive "p")
   (forward-word))
 
 ;; Still needs work, parens work but not quotes yet.
-(defun alex/goto-match-paren (arg)
+(defun asqrd/goto-match-paren (arg)
   "Move to matching parenthesis.  Takes in ARG."
   (interactive "p")
   (cond ((looking-at "\\s\(") (forward-list 1) (backward-char 1))
@@ -262,7 +268,7 @@
 		;;((looking-at "\\s\"") (forward-sexp) (backward-char 1))
 		(t (self-inset-command (or arg 1)))))
 
-(defun alex/jump-forward ()
+(defun asqrd/jump-forward ()
   "Jumps to definition like vim Ctrl-]"
   (interactive)
   (evil-emacs-state)
@@ -270,7 +276,7 @@
   (evil-change-to-previous-state (other-buffer))
   (evil-change-to-previous-state (current-buffer)))
 
-(defun alex/jump-backward ()
+(defun asqrd/jump-backward ()
   "Jumps back like vim Ctrl-o"
   (interactive)
   (evil-emacs-state)
@@ -278,47 +284,31 @@
   (evil-change-to-previous-state (other-buffer))
   (evil-change-to-previous-state (current-buffer)))
 
-
-;; Use before calling setup-tide-mode.
-;; (defun alex/make-jsconfig ()
-;;   "Create a jsconfig file."
-;;   (f-write-text "{\n\"compilerOptions\": {\n\t\"target" 'utf-8 "jsconfig.json"))
-
-
-;; Java experiments
-
-;; (create-file-buffer "blah.org")
-;; (f-write-text "Blah from emacs" 'utf-8 "blah.org")
-;; (defun alex/read-string ()
-;;   (interactive)
-;;   (message "String is %s" (read-string "Enter string: ")))
-
-;; (defun alex/java/create-class ()
-;;   (interactive)
-;;   (message "String is %s.java" (read-string "Enter class name: ")))
-
-;; (defun alex/java/create-project ()
-;;   (interactive)
-;;   (message "String is %s" (read-directory-name "Enter project directory name: ")))
-
-;; read-file-name, read-directory-name
+(defun asqrd/company-show-doc-buffer ()
+  "Temporarily show the documentation buffer for the selection."
+  (interactive)
+  (let* ((selected (nth company-selection company-candidates))
+         (doc-buffer (or (company-call-backend 'doc-buffer selected)
+                         (error "No documentation available"))))
+    (with-current-buffer doc-buffer
+      (goto-char (point-min)))
+    (display-buffer doc-buffer t)))
 
 
 ;; Keymapings of custom functions
 
-(global-set-key (kbd "C-x ,") 'recenter-top-bottom)
-(global-set-key (kbd "C-.") 'alex/paste-below)
-(global-set-key (kbd "C->") 'alex/paste-above)
-(global-set-key (kbd "C-l") 'alex/copy-line)
-(global-set-key (kbd "C-S-o") 'alex/insert-line-below)
-(global-set-key (kbd "C-o") 'alex/insert-line-above)
-(global-set-key (kbd "C-;") 'alex/jump-to-line-above)
-(global-set-key (kbd "C-:") 'alex/jump-to-line-below)
-(global-set-key (kbd "M-f") 'alex/move-forward)
-(global-set-key (kbd "C-%") 'alex/goto-match-paren)
-(global-set-key (kbd "M-'") 'alex/move-to-end-of-word)
-
-
+;; (global-set-key (kbd "C-x ,") 'recenter-top-bottom)
+(global-set-key (kbd "C-.") 'asqrd/paste-below)
+(global-set-key (kbd "C->") 'asqrd/paste-above)
+(global-set-key (kbd "C-x ,") 'asqrd/copy-line)
+(global-set-key (kbd "C-S-o") 'asqrd/insert-line-below)
+(global-set-key (kbd "C-o") 'asqrd/insert-line-above)
+(global-set-key (kbd "C-;") 'asqrd/jump-to-line-above)
+(global-set-key (kbd "C-:") 'asqrd/jump-to-line-below)
+(global-set-key (kbd "M-f") 'asqrd/move-forward)
+(global-set-key (kbd "C-%") 'asqrd/goto-match-paren)
+(global-set-key (kbd "M-'") 'asqrd/move-to-end-of-word)
+;; (define-key company-active-map (kbd "C-c d") #'asqrd/company-show-doc-buffer)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -347,22 +337,9 @@
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
 
-;;(set-frame-parameter (selected-frame) 'alpha '(90 . 50))
-;;(add-to-list 'default-frame-alist '(alpha . (90 . 50)))
-
-;; (use-package powerline
-;;   :ensure t
-;;   :init
-;;   (powerline-default-theme))
-
 (global-hl-line-mode 1)
 (set-face-background 'hl-line "#3e4446")
 (set-face-foreground 'highlight nil)
-
-(use-package rainbow-delimiters
-  :ensure t
-  :config
-  (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -386,6 +363,17 @@
   (define-key company-active-map (kbd "TAB") #'company-complete-selection)
   (define-key company-active-map [tab] #'company-complete-selection))
 
+(use-package pos-tip
+  :ensure t)
+
+(use-package company-quickhelp
+  :ensure t
+  :config
+  (company-quickhelp-mode)
+  (with-eval-after-load 'company
+    '(define-key company-active-map (kbd "C-c h") #'company-quickhelp-manual-begin)))
+
+
 (use-package flycheck
   :ensure t
   :init (global-flycheck-mode))
@@ -400,40 +388,16 @@
 	  (recents . 5)))
   (dashboard-setup-startup-hook))
 
-(use-package ediff
-  :ensure t
-  :config
-  (setq ediff-window-setup-function 'ediff-setup-windows-plain)
-  (setq-default ediff-highlight-all-diffs 'nil)
-  (setq ediff-diff-options "-w"))
 
-(use-package which-key
-  :ensure t
-  :init
-  (which-key-mode)
-  :config
-  (define-key help-map "\C-h" 'which-key-C-h-dispatch))
 
-(use-package define-word
-  :ensure t)
 
-(use-package exec-path-from-shell
-  :ensure t
-  :config
-  (when (memq window-system '(mac ns x))
-    (exec-path-from-shell-initialize))
-  (exec-path-from-shell-copy-env "KIEX_HOME")
-  (exec-path-from-shell-copy-env "MIX_ARCHIVES")
-  (exec-path-from-shell-copy-env "kotlinc")
-  (exec-path-from-shell-copy-env "RUST_SRC_PATH"))
 
-(use-package expand-region
-  :ensure t
-  :bind
-  ("C-=" . er/expand-region))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                      Search and Management                         ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(use-package flx
-  :ensure t)
 
 (use-package ivy
   :ensure t
@@ -456,44 +420,6 @@
 (global-set-key (kbd "M-g g") 'avy-goto-line)
 (global-set-key (kbd "M-g c") 'avy-goto-char)
 
-;; Helm - Yikes!
-;; (use-package helm
-;;   :ensure t
-;;   :diminish helm-mode
-;;   :init
-;;   (setq helm-autoresize-max-height 30
-;;     helm-display-header-line nil
-;;     helm-always-two-windows t
-;;     helm-split-window-inside-p t
-;;     helm-move-to-line-cycle-in-source t
-;;     helm-ff-search-library-in-sexp t
-;;     helm-ff-file-name-history-use-recentf t
-;;     helm-comp-read-mode-line ""
-;;     helm-read-file-name-mode-line-string ""
-;;     helm-mode-line-string "")
-;;   ;; enable fuzzy matching
-;;   (setq helm-buffers-fuzzy-matching t
-;;     helm-completion-in-region-fuzzy-match t
-;;     helm-M-x-fuzzy-match t
-;;     helm-apropos-fuzzy-match t
-;;     helm-imenu-fuzzy-match t
-;;     helm-lisp-fuzzy-completion t
-;;     helm-locate-fuzzy-match t
-;;     helm-mode-fuzzy-match t
-;;     helm-recentf-fuzzy-match t
-;;     helm-semantic-fuzzy-match t)
-;;   :config
-;;   (require 'helm-config)
-;;   (helm-mode 1)
-;;   (helm-autoresize-mode 1))
-
-;; ;; Fuzzy Matcher for Helm
-;; (use-package helm-flx
-;;   :ensure t
-;;   :after helm
-;;   :config
-;; (helm-flx-mode +1))
-
 ;; Ace Window
 (use-package ace-window
   :ensure t
@@ -505,13 +431,16 @@
   (setq aw-keys '(?a ?s ?d ?f ?j ?k ?l ?\;)))
 
 
+;; (use-package flx
+;; :ensure t)
+
 ;; Project management
 (use-package projectile
   :ensure t
   :config
   (setq projectile-completion-system 'ivy)
   :init
-  (projectile-global-mode))
+  (projectile-mode +1))
 
 (use-package counsel-projectile
   :ensure t
@@ -537,7 +466,12 @@
   :bind
   ("C-x m" . imenu-list-smart-toggle))
 
-;; Version Control
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                          Version Control                              ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (use-package magit
   :config
   (setq magit-completing-read-function 'ivy-completing-read)
@@ -552,77 +486,21 @@
   ;; :ensure t
   ;; :config (magithub-feature-autoinject t))
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                          EVIL                              ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-;; (use-package evil
-;;   :ensure t
-;;   :config
-;;   (evil-mode 1)
-;;   (evil-global-set-key 'normal (kbd "<SPC> s") 'save-buffer)
-;;   (evil-global-set-key 'normal (kbd "<SPC> q") 'save-buffers-kill-terminal)
-;;   (evil-global-set-key 'normal (kbd "<SPC> n") 'evil-ex-nohighlight)
-;;   (evil-global-set-key 'normal (kbd "<SPC> e") 'dired)
-;;   (evil-global-set-key 'normal (kbd "<SPC> t") 'multi-term-dedicated-toggle)
-;;   (evil-global-set-key 'normal (kbd "<SPC> f") 'counsel-find-file)
-;;   (evil-global-set-key 'normal (kbd "<SPC> b") 'switch-to-buffer)
-;;   (evil-global-set-key 'normal (kbd "] q") 'flycheck-next-error)
-;;   (evil-global-set-key 'normal (kbd "[ q") 'flycheck-previous-error)
-;;   (evil-global-set-key 'normal (kbd "[ <SPC>") 'alex/insert-line-above)
-;;   (evil-global-set-key 'normal (kbd "] <SPC>") 'alex/insert-line-below)
-;;   (evil-global-set-key 'visual (kbd "H") 'drag-stuff-left)
-;;   (evil-global-set-key 'visual (kbd "J") 'drag-stuff-down)
-;;   (evil-global-set-key 'visual (kbd "K") 'drag-stuff-up)
-;;   (evil-global-set-key 'visual (kbd "L") 'drag-stuff-right)
-;;   (evil-global-set-key 'normal (kbd "C-]") 'alex/jump-forward)
-;;   (evil-global-set-key 'normal (kbd "C-o") 'alex/jump-backward)
-;;   (evil-global-set-key 'normal (kbd "<SPC> d") 'alex/open-daily)
-;;   (evil-global-set-key 'normal (kbd "<SPC> vr") 'alex/open-init))
-
-
-;; (use-package evil-escape
-;;   :ensure t
-;;   :config
-;;   (setq-default evil-escape-key-sequence "jk")
-;;   (setq-default evil-escape-delay 0.2)
-;;   :init
-;;   (evil-escape-mode t))
-
-;; (use-package evil-commentary
-;;   :ensure t
-;;   :config
-;;   (evil-commentary-mode))
-
-;; (use-package evil-magit
-;;   :ensure t)
-
-;; (use-package evil-lion
-;;   :ensure t
-;;   :config
-;;   (evil-lion-mode))
-
-;; ;; ;; Specific conflict with Neotree & Evil
-;; (evil-define-key 'normal neotree-mode-map (kbd "TAB") 'neotree-enter)
-;; (evil-define-key 'normal neotree-mode-map (kbd "SPC") 'neotree-enter)
-;; (evil-define-key 'normal neotree-mode-map (kbd "q") 'neotree-hide)
-;; (evil-define-key 'normal neotree-mode-map (kbd "RET") 'neotree-enter)
-
-
+(use-package ediff
+  :ensure t
+  :config
+  (setq ediff-window-setup-function 'ediff-setup-windows-plain)
+  (setq-default ediff-highlight-all-diffs 'nil)
+  (setq ediff-diff-options "-w"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                        Orgmode                             ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(use-package org-plus-contrib
-  :ensure t)
-
-
+(use-package org
+  :ensure org-plus-contrib)
+(setq org-pretty-entities t)
 
 (setq org-agenda-files (list "~/org/daily.org"
 			     "~/org/journal"))
@@ -655,6 +533,7 @@
 			     (visual-line-mode)
 			     (org-indent-mode)
 			     (org-bullets-mode 1)
+			     (turn-off-drag-stuff-mode)
 			     ;; (flyspell-mode)
 			     (ispell-minor-mode))))
 
@@ -702,21 +581,11 @@
    (python . t)
    (js . t)))
 
-;; (setq org-plantuml-jar-path
-      ;; (expand-file-name "~/work/plantuml/plantuml.jar"))
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                       LANGUAGES                            ;;
+;;                        Elixir                              ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                     Elixir
-
 (defun elixir/fancify-symbols (mode)
   (font-lock-add-keywords mode
 			  '(("\\(|>\\)[\[[:space:]]"
@@ -766,7 +635,10 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                          Ruby
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                          Ruby                              ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package inf-ruby
   :ensure t)
@@ -818,29 +690,48 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                         Python
-(use-package elpy
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                          Python                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package anaconda-mode
+  :ensure t
+  :config
+  (add-hook 'python-mode-hook 'anaconda-mode)
+  (add-hook 'python-mode-hook 'anaconda-eldoc-mode))
+
+(use-package company-anaconda
   :ensure t)
 
+(eval-after-load "company"
+  '(add-to-list 'company-backends 'company-anaconda))
 
-(elpy-enable)
-
-(setq elpy-rpc-python-command "python3")
-
-;; Ipython has issues
-(setq python-shell-interpreter "python3")
-
-;; (use-package jedi
+;; (use-package elpy
 ;;   :ensure t
 ;;   :config
-;;   (add-hook 'python-mode-hook 'jedi:setup)
-;;   (setq jedi:complete-on-dot t))
+;;   ;; (elpy-enable)
+;;   (add-hook 'python-mode-hook 'elpy-mode)
+;;   (remove-hook 'elpy-modules 'elpy-module-flymake)
+;;   (add-hook 'elpy-mode-hook 'flycheck-mode)
+;;   (add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save)
+;;   (setq python-shell-interpreter "ipython3" python-shell-interpreter-args "--simple-prompt --pprint"))
 
-;; (use-package company-jedi
-  ;; :ensure t)
+;; (use-package py-autopep8
+;;   :ensure t
+;;   :config
+;;   (add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save))
 
-;; (with-eval-after-load 'company
-  ;; (add-to-list 'company-backends 'company-jedi))
+;; (use-package ein
+;;   :ensure t)
+
+
+
+;; (add-hook 'elpy-mode-hook
+	  ;; (lambda ()
+	    ;; (set (make-local-variable 'company-backends)
+		 ;; '((company-dabbrev-code company-yasnippet elpy-company-backend)))))
+
 
 ;; Requires simple-httpd
 ;; (use-package ein
@@ -849,7 +740,10 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                          Java
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                          Java                              ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package autodisass-java-bytecode
   :ensure t
@@ -956,7 +850,10 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                     Clojure
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                        Clojure                             ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; This was shamelessly stolen from spacemacs- Thanks :)
 (defun clojure/fancify-symbols (mode)
@@ -994,6 +891,7 @@
   ;; (add-hook 'clojure-mode-hook #'yas-minor-mode))
 
 (use-package cider
+  :ensure t
   :config
   (define-key cider-mode-map (kbd "C-c M-l") 'cider-inspect-last-result)
   (define-key cider-mode-map (kbd "C-c M-v") 'cider-find-var)
@@ -1006,9 +904,12 @@
   (clojure/fancify-symbols 'clojure-mode))
 
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                        Common Lisp
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                      Common Lisp                           ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (use-package slime
   :ensure t
   :config
@@ -1026,9 +927,12 @@
 ;; Local HyperSpec
 ;; (setq common-lisp-hyperspec-root (expand-file-name "~/.emacs.d/hyper_spec/HyperSpec/"))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                        Web
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                          Web                               ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (use-package web-mode
   :ensure t
   :config
@@ -1162,7 +1066,11 @@
 ;;     (add-to-list 'company-backends 'company-tern)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                       C-CPP
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                         C-CPP                              ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (use-package irony
   :ensure t
   :config
@@ -1171,10 +1079,10 @@
   (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
   (add-hook 'c++-mode-hook
 			(lambda ()
-			  (local-set-key (kbd "<F5>") 'recompile)))
+			  (local-set-key (kbd "<f5>") 'recompile)))
   (add-hook 'c-mode-hook
-			(lambda ()
-			  (local-set-key (kbd "<F5>") 'recompile))))
+	    (lambda ()
+	      (local-set-key (kbd "<f5>") 'recompile))))
 
 (use-package irony-eldoc
   :ensure t
@@ -1197,9 +1105,11 @@
 ;;   :ensure t)
 
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                        Rust
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                         Rust                               ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (use-package rust-mode
   :ensure t)
 
@@ -1221,9 +1131,11 @@
   (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
 
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                      Scheme
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                       Scheme                               ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (use-package geiser
   :ensure t)
 
@@ -1231,7 +1143,9 @@
   ;; (define-key geiser-mode-map (kbd "C-c C-c") 'scheme-send-last-sexp))
 
 
-(setq scheme-program-name "csi -:c")
+;; (setq scheme-program-name "csi -:c")
+(setq scheme-program-name "guile")
+(setq geiser-scheme-implementation "guile")
 
 (require 'cmuscheme)
 
@@ -1254,8 +1168,12 @@
 
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                        Golang
+;;                       Golang                               ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (use-package go-mode
   :ensure t
   :config
@@ -1263,114 +1181,34 @@
   (add-hook 'before-save-hook 'gofmt-before-save))
 
 (use-package company-go
-  :ensure t
-  :config
-  (add-hook 'go-mode-hook (lambda ()
-			    (shell-copy-environment-variable "GOPATH")
-			    (set (make-local-variable 'company-backends) '(company-go))
-			    (company-mode))))
+  :ensure t)
+
+(eval-after-load "company"
+  '(add-to-list 'company-backends 'company-go))
+
+
+;; (company-mode))))
+
+;; (require 'company-go)
+;; (add-hook 'go-mode-hook (lambda ()
+			  ;; (shell-copy-environment-variable "GOPATH")
+			  ;; (set (make-local-variable 'company-backends) '(company-go))))
 
 (use-package go-eldoc
   :ensure t
   :config
   (add-hook 'go-mode-hook 'go-eldoc-setup))
 
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                          Social                            ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; (setq emacs-secrets-file "/home/asqrd/.emacs-secrets.el")
-
-;; (defun get-freenode-password (server)
-;;   (with-temp-buffer
-;;     (insert-file-contents-literally emacs-secrets-file)
-;;     (plist-get (read (buffer-string)) :freenode-password)))
-
-;; (use-package circe
-;;   :ensure t
-;;   :config
-;;   (setq circe-network-options
-;; 	'(("Freenode"
-;; 	   :tls t
-;; 	   :nick "asqrd_"
-;; 	   :sasl-username "asqrd_"
-;; 	   :sasl-password get-freenode-password
-;; 	   :channels ("#emacs"
-;; 		      "#vim"
-;; 		      "#emacs-elixir"
-;; 		      "#clojure-emacs"
-;; 		      "#Solus"
-;; 		      "#Solus-Chat"
-;; 		      "#Solus-Dev"
-;; 		      "#clojure"
-;; 		      "#clojure-beginners"
-;; 		      "#elixir-lang"
-;; 		      "#ruby"
-;; 		      "##java")))))
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                       DO NOT TOUCH!                        ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;;; (provide 'init)
+;;; init.el ends here
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(cider-boot-parameters "cider repl -s wait")
- '(counsel-mode t)
- '(custom-safe-themes
-   (quote
-    ("617341f1be9e584692e4f01821716a0b6326baaec1749e15d88f6cc11c288ec6" "ab04c00a7e48ad784b52f34aa6bfa1e80d0c3fcacc50e1189af3651013eb0d58" "a0feb1322de9e26a4d209d1cfa236deaf64662bb604fa513cca6a057ddf0ef64" "7356632cebc6a11a87bc5fcffaa49bae528026a78637acd03cae57c091afd9b9" "5e3fc08bcadce4c6785fc49be686a4a82a356db569f55d411258984e952f194a" "04dd0236a367865e591927a3810f178e8d33c372ad5bfef48b5ce90d4b476481" "7153b82e50b6f7452b4519097f880d968a6eaf6f6ef38cc45a144958e553fbc6" "d6db7498e2615025c419364764d5e9b09438dfe25b044b44e1f336501acd4f5b" "59171e7f5270c0f8c28721bb96ae56d35f38a0d86da35eab4001aebbd99271a8" "a24c5b3c12d147da6cef80938dca1223b7c7f70f2f382b26308eba014dc4833a" "b97a01622103266c1a26a032567e02d920b2c697ff69d40b7d9956821ab666cc" "40da996f3246a3e99a2dff2c6b78e65307382f23db161b8316a5440b037eb72c" default)))
- '(geiser-default-implementation (quote chicken))
- '(geiser-implementations-alist
-   (quote
-    (((regexp "\\.scm$")
-      chicken)
-     ((regexp "\\.ss$")
-      racket)
-     ((regexp "\\.rkt$")
-      racket)
-     ((regexp "\\.scm$")
-      guile)
-     ((regexp "\\.release-info$")
-      chicken)
-     ((regexp "\\.meta$")
-      chicken)
-     ((regexp "\\.setup$")
-      chicken)
-     ((regexp "\\.ss$")
-      chez)
-     ((regexp "\\.def$")
-      chez)
-     ((regexp "\\.scm$")
-      mit)
-     ((regexp "\\.pkg$")
-      mit)
-     ((regexp "\\.scm$")
-      chibi)
-     ((regexp "\\.sld$")
-      chibi))))
  '(package-selected-packages
    (quote
-    (indium paradox esh-autosuggest elmacro suggest sly-repl-ansi-color sly-quicklisp sly nasm-mode org-wc writegood-mode ob-elixir clojure-mode alect-themes racket-mode skewer-mode impatient-mode simple-httpd clj-refactor cider alchemist elixir-mode magit define-word lorem-ipsum elnode seeing-is-believing imenu-list geiser org-plus-contrib go-eldoc company-go go-mode slime ruby-end smartparens highlight-indent-guides org-journal markdown-mode android-mode drag-stuff sudoku typit typing ag emmet-mode multi-term try irony-eldoc irony kotlin-mode gradle-mode groovy-mode meghanada tabbar evil-tabs powerline evil-commentary evil counsel-projectile projectile ace-window ivy expand-region exec-path-from-shell dashboard flycheck company dracula-theme use-package)))
- '(safe-local-variable-values
-   (quote
-    ((cider-cljs-lein-repl . "(do (user/go) (user/cljs-repl))")
-     (cider-refresh-after-fn . "reloaded.repl/resume")
-     (cider-refresh-before-fn . "reloaded.repl/suspend")
-     (cider-refresh-after-fn . "integrant.repl/resume")
-     (cider-refresh-before-fn . "integrant.repl/suspend"))))
- '(wakatime-cli-path "/usr/bin/wakatime")
- '(wakatime-python-bin nil))
+    (company-quickhelp pos-tip which-key web-mode use-package try tide suggest smartparens slime seeing-is-believing rvm ruby-end rspec-mode robe restclient realgud rainbow-delimiters racer python-environment py-autopep8 projectile-rails paredit org-plus-contrib org-journal org-bullets ob-elixir neotree multi-term meghanada markdown-mode magit kotlin-mode java-snippets irony-eldoc imenu-list hydra groovy-mode gradle-mode google-c-style go-eldoc git-gutter-fringe geiser flycheck-rust flx expand-region exec-path-from-shell esup epc emmet-mode elpy elnode elmacro ein easy-jekyll drag-stuff dracula-theme diminish define-word debbugs dashboard counsel-projectile company-go company-anaconda cider cargo autodisass-java-bytecode all-the-icons alchemist ag ace-window))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
