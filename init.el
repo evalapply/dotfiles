@@ -32,6 +32,13 @@
 (prefer-coding-system			'utf-8)
 (setq default-process-coding-system	'(utf-8-unix . utf-8-unix))
 
+(if (eq system-type 'darwin)
+    (progn
+      (setq mac-option-key-is-meta nil)
+      (setq mac-command-key-is-meta t)
+      (setq mac-command-modifier 'meta)
+      (setq mac-option-modifier 'alt)))
+
 ;; Delete trailing space on save
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
