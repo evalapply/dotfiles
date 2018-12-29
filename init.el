@@ -301,6 +301,28 @@
       (goto-char (point-min)))
     (display-buffer doc-buffer t)))
 
+;; Found here: https://demonastery.org/2013/04/emacs-narrow-to-region-indirect/
+;; TODO: name buffers ->
+;; (let* (buf-name (generate-buffer-name "*indirect*"))
+;;       (buf (clone-indirect-buffer-other-window buf-name t))...
+(defun asqrd/indirect-region-below (start end)
+  "Open buffer with selected region from START to END in window below."
+  (interactive "r")
+  (let ((buf (clone-indirect-buffer-other-window nil t)))
+    (with-current-buffer buf
+      (narrow-to-region start end))
+    (switch-to-buffer buf)))
+
+(defun asqrd/indirect-region-side (start end)
+  "Open buffer with selected region from START to END in window to the sidek."
+  (interactive "r")
+  (split-window-horizontally)
+  (other-window 1)
+  (let ((buf (clone-indirect-buffer-other-window nil t)))
+    (with-current-buffer buf
+      (narrow-to-region start end))
+    (switch-to-buffer buf)))
+
 
 ;; Keymapings of custom functions
 
