@@ -26,9 +26,9 @@
 (require 'use-package)
 
 ;; For MAC
-;; (when (eq system-type 'darwin)
-  ;; (setq mac-option-modifier 'meta)
-  ;; (setq mac-command-modifier '(:ordinary super :button 2)))
+(when (eq system-type 'darwin)
+  (setq mac-option-modifier 'meta)
+  (setq mac-command-modifier '(:ordinary super :button 2)))
 
 ;; UTF-8 settings
 (set-language-environment               "UTF-8")
@@ -45,13 +45,12 @@
 (setq make-backup-files nil)
 
 ;; Mac Specific settings
-;; (if (eq system-type 'darwin)
-    ;; (progn
-      ;; (setq mac-option-key-is-meta nil)
-      ;; (setq mac-command-key-is-meta t)
-      ;; (setq mac-command-modifier 'meta)
-      ;; (setq mac-option-modifier 'alt)))
-
+(if (eq system-type 'darwin)
+    (progn
+      (setq mac-option-key-is-meta nil)
+      (setq mac-command-key-is-meta t)
+      (setq mac-command-modifier 'meta)
+      (setq mac-option-modifier 'alt)))
 ;; Delete trailing space on save
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
@@ -64,15 +63,11 @@
 ;; Line numbers in programming mode
 (add-hook 'prog-mode-hook 'linum-mode)
 
-;; Evil Mode
-;; (use-package evil
-  ;; :ensure t
-  ;; :config
-  ;; (setq evil-default-state 'emacs)
-;; (evil-mode))
-
-(use-package nimbus-theme
-  :ensure t)
+;; Parenthesis settings
+(use-package smartparens
+  :ensure t
+  :config
+  (add-hook 'prog-mode-hook #'smartparens-mode))
 
 (use-package rainbow-delimiters
   :ensure t
@@ -389,7 +384,6 @@
 
 
 (set-frame-font "Fira Code 18")
-(setq default-frame-alist '((font . "Fira Code 18")))
 (setq inhibit-startup-screen t)
 (setq ring-bell-function 'ignore)
 (menu-bar-mode -1)
@@ -746,7 +740,6 @@
   (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.jinja\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.eex\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
@@ -772,7 +765,7 @@
   (setq web-mode-engines-alist
 	'(("django" . "\\.html\\'"))))
 
-;; Emmet mode, Ctrl , for expansion
+;; Emmet mode, Ctrl J for expansion
 (use-package emmet-mode
   :ensure t
   :config
@@ -883,14 +876,9 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(ansi-color-faces-vector
-   [default default default italic underline success warning error])
- '(ansi-color-names-vector
-   ["#454545" "#d65946" "#6aaf50" "#baba36" "#598bc1" "#ab75c3" "#68a5e9" "#bdbdb3"])
- '(hl-sexp-background-color "#efebe9")
  '(package-selected-packages
    (quote
-    (nord-theme nimbus-theme nimbus leuven-theme dracula-theme yaml-mode docker dockerfile-mode cquery company-anaconda anaconda-mode company-lsp yasnippet-snippets yasnippet lsp-mode magit elmacro suggest git-gutter-fringe imenu-list all-the-icons neotree ag counsel-projectile projectile ace-window ivy flycheck company-quickhelp pos-tip company expand-region exec-path-from-shell which-key define-word realgud multi-term try esup drag-stuff paredit rainbow-delimiters smartparens use-package))))
+    (yaml-mode docker dockerfile-mode cquery company-anaconda anaconda-mode company-lsp yasnippet-snippets yasnippet lsp-mode magit elmacro suggest git-gutter-fringe imenu-list all-the-icons neotree ag counsel-projectile projectile ace-window ivy flycheck company-quickhelp pos-tip company expand-region exec-path-from-shell which-key define-word realgud multi-term try esup drag-stuff paredit rainbow-delimiters smartparens use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
