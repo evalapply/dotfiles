@@ -1,4 +1,4 @@
-;;; package -- Init File
+;; package -- Init File
 ;;; Commentary:
 ;;; This is the init file for Emacs configuration.
 ;;; Code:
@@ -72,7 +72,28 @@
 ;; (evil-mode))
 
 (use-package nimbus-theme
-  :ensure t)
+  :ensure
+  :defer)
+
+;; (use-package nord-theme
+  ;; :ensure
+  ;; :defer)
+
+;; (use-package apropospriate-theme
+  ;; :ensure
+  ;; :defer)
+
+(use-package circadian
+  :ensure t
+  :config
+  (setq circadian-themes '(("8:00" . leuven)
+			   ("17:00" . nimbus)))
+  ;; Low-contrast themes
+  ;; (setq circadian-themes '((:sunrise . apropospriate-light)
+			   ;; (:sunset . nord)))
+  (circadian-setup))
+
+
 
 (use-package rainbow-delimiters
   :ensure t
@@ -189,25 +210,28 @@
 ;; LSP Debugger
 (use-package dap-mode
   :ensure t
+  :after lsp-mode
   :config
-  (dap-mode 1))
+  (dap-mode t)
+  (dap-ui-mode t)
+  (require 'dap-elixir))
 
-(when (display-graphic-p)
-  (progn
+;; (when (display-graphic-p)
+  ;; (progn
     ;; Show information (errors, function args, docs, etc) in buffer
-    (use-package lsp-ui
-      :ensure t
-      :config
-      (add-hook 'lsp-mode-hook 'lsp-ui-mode))
+    ;; (use-package lsp-ui
+      ;; :ensure t
+      ;; :config
+      ;; (add-hook 'lsp-mode-hook 'lsp-ui-mode))
 
     ;; Error list Tree view
-    (use-package lsp-treemacs
-      :ensure t)
+    ;; (use-package lsp-treemacs
+      ;; :ensure t)
 
     ;; Enable DAP UI
-    (dap-ui-mode 1)
-    )
-  )
+    ;; (dap-ui-mode 1)
+    ;; )
+  ;; )
 
 ;; LSP (Language Server Protocol)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -223,6 +247,21 @@
 ;;    'rustup update'
 ;;    'rustup component add rls rust-analysis rust-src', lsp will auto detect
 
+;; Really minimal alternative to lsp-mode
+;; (use-package eglot
+;; :ensure t)
+
+(use-package lsp-java
+  :ensure t
+  :after lsp
+  :config
+  (add-hook 'java-mode-hook 'lsp)
+  (require 'lsp-java-boot)
+  ;; to enable the lenses
+  (add-hook 'lsp-mode-hook #'lsp-lens-mode)
+  (add-hook 'java-mode-hook #'lsp-java-boot-lens-mode)
+  )
+
 (use-package lsp-mode
   :commands lsp
   :ensure t
@@ -230,36 +269,32 @@
   :config
   (require 'lsp-mode)
   (require 'lsp-clients)
+  ;; This essentially turns off lsp-ui-mode.
+  ;; In Fullscreen mode it is causing error on mac,
+  ;; and is in general annoying.
+  (with-eval-after-load 'lsp-ui
+      (setq lsp-ui-doc-enable nil
+	lsp-ui-peek-enable nil
+	lsp-ui-sideline-enable nil
+	lsp-ui-imenu-enable nil
+	lsp-ui-flycheck-enable t))
   :hook
   (elixir-mode . lsp)
   (ruby-mode . lsp)
   (rust-mode . lsp)
   (c-mode . lsp)
   (c++-mode . lsp)
+  (go-mode . lsp)
   :init
   ;; Elixir Language Server
   (add-to-list 'exec-path "~/work/thirdparty/elixir-ls/release")
-  ;; cquery c/c++ Language Server
-  (add-to-list 'exec-path "~/work/thirdparty/cquery/build/release/bin"))
+  (add-to-list 'exec-path "~/work/code/go/bin"))
 
-;; Company LSP enhancements
+;;Company LSP enhancements
 (use-package company-lsp
   :ensure t
   :config
   (push 'company-lsp company-backends))
-
-
-;; Show tooltip at point
-(use-package pos-tip
-  :ensure t)
-
-;; Show Documentation
-(use-package company-quickhelp
-  :ensure t
-  :config
-  (company-quickhelp-mode)
-  (with-eval-after-load 'company
-    '(define-key company-active-map (kbd "C-c h") #'company-quickhelp-manual-begin)))
 
 ;; Linter/Syntax checker
 (use-package flycheck
@@ -702,7 +737,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package elixir-mode
-  :ensure t)
+  :ensure t
+  :config)
 
 ;; (use-package dap-elixir
   ;; :ensure t)
@@ -865,6 +901,34 @@
   :config
   (add-hook 'rust-mode-hook 'cargo-minor-mode))
 
+(use-package flycheck-rust
+  :ensure t)
+
+(with-eval-after-load 'rust-mode
+  (add-hook 'flycheck-mode #'flycheck-rust-setup))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                         Golang                             ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package go-mode
+  :ensure t)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                         Scheme                             ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package geiser
+  :ensure t
+  :config
+  (setq geiser-active-implementations '(chicken)))
+
 
 
 ;;; (provide 'init)
@@ -890,7 +954,7 @@
  '(hl-sexp-background-color "#efebe9")
  '(package-selected-packages
    (quote
-    (nord-theme nimbus-theme nimbus leuven-theme dracula-theme yaml-mode docker dockerfile-mode cquery company-anaconda anaconda-mode company-lsp yasnippet-snippets yasnippet lsp-mode magit elmacro suggest git-gutter-fringe imenu-list all-the-icons neotree ag counsel-projectile projectile ace-window ivy flycheck company-quickhelp pos-tip company expand-region exec-path-from-shell which-key define-word realgud multi-term try esup drag-stuff paredit rainbow-delimiters smartparens use-package))))
+    (geiser cider go-mode apropospriate-theme circadian flycheck-irony irony-eldoc irony-mode company-irony cquery flycheck-rust nord-theme nimbus-theme nimbus leuven-theme dracula-theme yaml-mode docker dockerfile-mode company-anaconda anaconda-mode company-lsp yasnippet-snippets yasnippet lsp-mode magit elmacro suggest git-gutter-fringe imenu-list all-the-icons neotree ag counsel-projectile projectile ace-window ivy flycheck company-quickhelp pos-tip company expand-region exec-path-from-shell which-key define-word realgud multi-term try esup drag-stuff paredit rainbow-delimiters smartparens use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
