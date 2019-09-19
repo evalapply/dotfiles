@@ -285,6 +285,7 @@
   (c-mode . lsp)
   (c++-mode . lsp)
   (go-mode . lsp)
+  (php-mode . lsp)
   :init
   ;; Elixir Language Server
   (add-to-list 'exec-path "~/work/thirdparty/elixir-ls/release")
@@ -583,6 +584,7 @@
 
 ;; Keymapings of custom functions
 
+(global-set-key (kbd "C-x ;") 'comment-line) ; This is needed in terminal
 ;; (global-set-key (kbd "C-x ,") 'recenter-top-bottom)
 ;;(global-set-key (kbd "C-.") 'asqrd/paste-below)
 ;;(global-set-key (kbd "C->") 'asqrd/paste-above)
@@ -806,7 +808,8 @@
   (setq web-mode-enable-current-element-highlight t)
   (setq web-mode-enable-current-column-highlight t)
   (setq web-mode-engines-alist
-	'(("django" . "\\.html\\'"))))
+	'(("django" . "\\.html\\'")
+	  ("blade" . "\\.blade\\."))))
 
 ;; Emmet mode, Ctrl , for expansion
 (use-package emmet-mode
@@ -887,6 +890,14 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                          PHP                              ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(use-package php-mode
+  :ensure t)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                          Rust                              ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -930,6 +941,37 @@
   (setq geiser-active-implementations '(chicken)))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                      Common-Lisp                           ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; (use-package slime
+;;   :ensure t
+;;   :config
+;;   (setq inferior-lisp-program "sbcl")
+;;   (load "/Users/asqrd/quicklisp/clhs-use-local.el" t)
+;;   (slime-setup '(slime-fancy slime-quicklisp slime-asdf slime-company)))
+
+;; (use-package slime-company
+;;   :ensure t)
+
+(use-package sly
+  :ensure t)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                        Clojure                             ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun cider-namespace-refresh ()
+  (interactive)
+  (cider-interactive-eval
+   "(require 'clojure.tools.namespace.repl)
+(clojure.tools.namespace.repl/refresh)"))
+
+
 
 ;;; (provide 'init)
 ;;; init.el ends here
@@ -954,7 +996,7 @@
  '(hl-sexp-background-color "#efebe9")
  '(package-selected-packages
    (quote
-    (geiser cider go-mode apropospriate-theme circadian flycheck-irony irony-eldoc irony-mode company-irony cquery flycheck-rust nord-theme nimbus-theme nimbus leuven-theme dracula-theme yaml-mode docker dockerfile-mode company-anaconda anaconda-mode company-lsp yasnippet-snippets yasnippet lsp-mode magit elmacro suggest git-gutter-fringe imenu-list all-the-icons neotree ag counsel-projectile projectile ace-window ivy flycheck company-quickhelp pos-tip company expand-region exec-path-from-shell which-key define-word realgud multi-term try esup drag-stuff paredit rainbow-delimiters smartparens use-package))))
+    (slime sly cider go-mode apropospriate-theme circadian flycheck-irony irony-eldoc irony-mode company-irony cquery flycheck-rust nord-theme nimbus-theme nimbus leuven-theme dracula-theme yaml-mode docker dockerfile-mode company-anaconda anaconda-mode company-lsp yasnippet-snippets yasnippet lsp-mode magit elmacro suggest git-gutter-fringe imenu-list all-the-icons neotree ag counsel-projectile projectile ace-window ivy flycheck company-quickhelp pos-tip company expand-region exec-path-from-shell which-key define-word realgud multi-term try esup drag-stuff paredit rainbow-delimiters smartparens use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
