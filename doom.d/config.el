@@ -18,7 +18,7 @@
 ;;
 ;; They all accept either a font-spec, font string ("Input Mono-12"), or xlfd
 ;; font string. You generally only need these two:
-(setq doom-font (font-spec :family "Fira Code" :size 14))
+(setq doom-font (font-spec :family "Fira Code" :size 16))
 
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
@@ -48,3 +48,42 @@
 ;;
 ;; You can also try 'gd' (or 'C-c g d') to jump to their definition and see how
 ;; they are implemented.
+
+;; Setup Scratch buffer for emacs-lisp experimentation.
+(setq initial-major-mode 'emacs-lisp-mode)
+(setq initial-scratch-message "\
+;; This is your Scratch buffer.
+;; Write some Elisp here:
+")
+
+;; Add some aliases to eshell
+;; TODO: I think that these are now included in doom. Should check the repo.
+(add-hook 'eshell-mode-hook (lambda ()
+                              (map! "C-l" "clear")
+                              (eshell/alias "e" "find-file $1")
+                              (eshell/alias "d" "dired $1")
+                              (eshell/alias "g" 'magit-status)))
+
+;; Add some extra filetypes to web-mode.
+(after! web-mode
+  (add-to-list 'auto-mode-alist '("\\.svelte?\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.eex\\'" . web-mode)))
+
+(add-hook 'before-save-hook 'gofmt-before-save)
+
+;; Use EWW by default, this can be overriden with:
+;; & (eww-browse-with-external-browser) when entering url.
+(setq browse-url-browser-function 'eww-browse-url)
+
+;; Map emmet expand to something other than tab, or it becomes annoying.
+(after! emmet-mode
+  (define-key emmet-mode-keymap (kbd "C-,") 'emmet-expand-line))
+
+;; Common LISP Hyperspec local documentation, instead of browser.
+(load! "/Users/evalapply/quicklisp/clhs-use-local.el" t)
+
+(after! eshell-git-prompt
+  (eshell-git-prompt-use-theme 'robbyrussell))
+
+(add-hook! sly-mode
+           #'lispyville-mode)
