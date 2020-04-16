@@ -1,0 +1,52 @@
+!! Font
+URxvt.font: xft:Fira Mono:pixelsize=20,style=regular
+URxvt.boldFont: xft:Fira Mono:pixelsize=20,style=Bold
+URxvt.italicFont: xft:Fira Mono:pixelsize=20,style=Bold
+URxvt.boldItalicFont: xft:Fira Mono:pixelsize=20,style=Bold
+
+!! Url selection
+URxvt.url-select.button: 1
+URxvt.url-select.launcher: x-www-browser
+
+!! Clipboard
+URxvt.keysym.Shift-Control-V: perl:clipboard:paste
+URxvt.iso14755: False
+URxvt.perl-ext-common: default,clipboard
+
+!! ScrollBar
+URxvt.scrollBar: false
+
+!! Cursor
+URxvt.cursorUnderline: true
+URxvt.cursorBlink: true
+
+
+*.foreground: #ABB2BF
+*.background: #1E2127
+*.cursorColor: #5c6370
+*.highlightColor: #3A3F4B
+
+! Black and Gray
+*.color0:  #1E2127
+*.color8:  #5c6370
+! Reds
+*.color1:  #E06C75
+*.color9:  #E06C75
+! Green
+*.color2:  #98C379
+*.color10: #98C379
+! Yellow
+*.color3:  #D19A66
+*.color11: #D19A66
+! Blue
+*.color4:  #61AFEF
+*.color12: #61AFEF
+! Magenta
+*.color5:  #C678DD
+*.color13: #C678DD
+! Cyan
+*.color6:  #56B6C2
+*.color14: #56B6C2
+! White
+*.color7:  #ABB2BF
+*.color15:  #ABB2BF
