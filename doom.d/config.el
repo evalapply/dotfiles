@@ -21,13 +21,13 @@
 ;; font string. You generally only need these two:
 ;; (setq doom-font (font-spec :family "monospace" :size 12 :weight 'semi-light)
 ;;       doom-variable-pitch-font (font-spec :family "sans" :size 13))
-
 (setq doom-font (font-spec :family "Fira Code" :size 16))
 
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
 ;; `load-theme' function. This is the default:
-(setq doom-theme 'doom-vibrant)
+(setq doom-theme 'doom-one)
+;; (setq doom-theme 'doom-vibrant)
 
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
@@ -70,16 +70,16 @@
 ;; Default mode elisp
 (setq-default major-mode 'emacs-lisp-mode)
 
-(use-package! paredit
-              :hook (clojure-mode . paredit-mode))
+;; (use-package! paredit
+;;               :hook (clojure-mode . paredit-mode))
 
 ;; (setq-hook! clojure-mode paredit-mode)
 
 ;; Clojure mode opens in emacs modee
-(add-to-list 'evil-emacs-state-modes 'clojure-mode)
+;; (add-to-list 'evil-emacs-state-modes 'clojure-mode)
 
-(after! rustic
-  setq lsp-rust-server 'rust-analyzer)
+;; (after! rustic
+;;   setq lsp-rust-server 'rust-analyzer)
 
 ;; LiveView Sigil L syntax highlighting
 (require 'mmm-mode)
@@ -101,3 +101,11 @@
          (setq web-mode-engine "elixir")
          (web-mode-on-engine-setted))
     (apply f r)))
+
+;; Org settings
+(setq org-journal-date-prefix "#+TITLE: "
+      org-journal-time-prefix "* "
+      org-journal-date-format "%a, %Y-%m-%d"
+      org-journal-file-format "%Y-%m-%d.org")
+
+(setq org-roam-directory "~/roam")
