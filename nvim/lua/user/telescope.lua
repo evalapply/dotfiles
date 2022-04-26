@@ -3,14 +3,30 @@ if not status_ok then
   return
 end
 
+telescope.load_extension "file_browser"
+
 local actions = require "telescope.actions"
+local actions_layout = require "telescope.actions.layout"
+
+-- local theme = require('telescope.themes').get_ivy()
+-- theme['layout_config']['height'] = 10
+
+-- require('telescope.builtin').find_files(theme)
 
 telescope.setup {
   defaults = {
 
+    preview = false,
     prompt_prefix = " ",
     selection_caret = " ",
     path_display = { "smart" },
+
+    -- layout_strategy = 'vertical',
+    -- layout_config = {
+    --   horizontal = { width = 0.3 },
+    --   vertical = { height = 10 },
+    --   bottom_pane = { height = 0.30 },
+    -- },
 
     mappings = {
       i = {
@@ -32,6 +48,7 @@ telescope.setup {
 
         ["<C-u>"] = actions.preview_scrolling_up,
         ["<C-d>"] = actions.preview_scrolling_down,
+        ["?"] = actions_layout.toggle_preview,
 
         ["<PageUp>"] = actions.results_scrolling_up,
         ["<PageDown>"] = actions.results_scrolling_down,
@@ -85,6 +102,51 @@ telescope.setup {
     -- }
     -- Now the picker_config_key will be applied every time you call this
     -- builtin picker
+
+    -- Find
+    -- find_files = {
+    --   theme = "ivy",
+    -- },
+    -- live_grep = {
+    --   theme = "ivy",
+    -- },
+    -- oldfiles = {
+    --   theme = "ivy",
+    -- },
+    -- help_tags = {
+    --   theme = "ivy",
+    -- },
+    -- man_pages = {
+    --   theme = "ivy",
+    -- },
+    -- quickfix = {
+    --   theme = "ivy",
+    -- },
+    -- treesitter = {
+    --   theme = "ivy",
+    -- },
+
+    -- Git
+    -- git_files = {
+    --   theme = "ivy",
+    -- },
+    -- git_commits = {
+    --   theme = "ivy",
+    -- },
+    -- git_branches = {
+    --   theme = "ivy",
+    -- },
+    -- git_status = {
+    --   theme = "ivy",
+    -- },
+    -- git_stash = {
+    --   theme = "ivy",
+    -- },
+
+    -- Misc
+    -- buffers = {
+    --   theme = "ivy",
+    -- },
   },
   extensions = {
     -- Your extension configuration goes here:
@@ -92,5 +154,16 @@ telescope.setup {
     --   extension_config_key = value,
     -- }
     -- please take a look at the readme of the extension you want to configure
+    file_browser = {
+      -- theme = "ivy",
+      -- mappings = {
+      --   ["i"] = {
+      --     -- Your custom insert mode mappings here
+      --   },
+      --   ["n"] = {
+      --     -- Your custom normal mode mappings here
+      --   },
+      -- },
+    },
   },
 }

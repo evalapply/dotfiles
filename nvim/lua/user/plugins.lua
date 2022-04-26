@@ -47,18 +47,56 @@ return packer.startup(function(use)
   use "kyazdani42/nvim-web-devicons" -- Needed for NvimTree
 
   -- Editor functionality
-  use "windwp/nvim-autopairs" -- Autopairs, integrates with both cmp and lsp
-  use "numToStr/Comment.nvim"
+  -- use "numToStr/Comment.nvim"
   use "JoosepAlviste/nvim-ts-context-commentstring"
-
+  -- Autopairs, integrates with both cmp and lsp
+  use { 'windwp/nvim-autopairs',
+    after = {'nvim-treesitter', 'nvim-cmp'},
+    config = function ()
+      require('nvim-autopairs').setup {}
+    end
+  }
+  use { 'p00f/nvim-ts-rainbow', after = {'nvim-treesitter'}}
   -- Colorschemes
   use "lunarvim/colorschemes" -- A bunch of colorschemes you can try out
   use "lunarvim/darkplus.nvim"
   use "folke/tokyonight.nvim"
 
+  -- Aesthetics
+  use "beauwilliams/statusline.lua"
+  -- use {
+  --   "glepnir/galaxyline.nvim",
+  --   requires = {"kyazdani42/nvim-web-devicons", opt = true}
+  -- }
+
   -- Project-Editor functionality
   use "kyazdani42/nvim-tree.lua" -- Project Explorer
-  use "akinsho/toggleterm.nvim"  -- MultiTerminal
+  use {"akinsho/toggleterm.nvim"}  -- MultiTerminal
+  -- TODO: Setup which-key
+  use "folke/which-key.nvim"
+  -- TODO: Setup Dashboard
+  -- use "glepnir/dashboard-nvim"
+  -- TODO: Setup vim-unimpaired and tpope plugins needed
+  use "tpope/vim-sensible"
+  use "tpope/vim-surround"
+  use "tpope/vim-dispatch"
+  use "tpope/vim-scriptease"
+  use "tpope/vim-fugitive"
+  use "junegunn/gv.vim"
+  use "tpope/vim-commentary"
+  -- use "tpope/vim-vinegar"
+  use "tpope/vim-endwise"
+  use "tpope/vim-unimpaired"
+  use "radenling/vim-dispatch-neovim"
+  -- Move at the speed of light!
+  use {
+    "ggandor/lightspeed.nvim",
+    config = function ()
+      require('lightspeed').setup {
+        ignore_case = true,
+      }
+    end
+  }
 
   -- cmp plugins
   use "hrsh7th/nvim-cmp" -- The completion plugin
@@ -76,21 +114,38 @@ return packer.startup(function(use)
   -- LSP
   use "neovim/nvim-lspconfig" -- enable LSP
   use "williamboman/nvim-lsp-installer" -- simple to use language server installer
-  use "tamago324/nlsp-settings.nvim" -- language server settings defined in json for
+  use "tamago324/nlsp-settings.nvim" -- language server settings defined in json for specific languages
 
   -- Telescope
   use "nvim-telescope/telescope.nvim"
+  use "nvim-telescope/telescope-file-browser.nvim"
 
   -- Treesitter
   use {
     "nvim-treesitter/nvim-treesitter",
     run = ":TSUpdate",
   }
-  use "p00f/nvim-ts-rainbow"
   use "nvim-treesitter/playground"
 
   -- Git
   use "lewis6991/gitsigns.nvim"
+  -- Decide between these two:
+  -- use "tpope/vim-fugitive"
+  -- use "sindrets/diffview.nvim"
+
+  -- Language specific
+  use "Olical/conjure"
+  use "crispgm/nvim-go"
+  use "jaawerth/fennel-nvim"
+  use "clojure-vim/clojure.vim"
+  use "clojure-vim/vim-jack-in"
+  use "elixir-editors/vim-elixir"
+  -- use "mattn/emmet-vim"
+  use {"nvim-orgmode/orgmode", after = {"nvim-treesitter"}}
+
+  -- DBs
+  use "tpope/vim-dadbod"
+  use "kristijanhusak/vim-dadbod-ui"
 
   -- Automatically set up your configuration after cloning packer.nvim
   -- Put this at the end after all plugins

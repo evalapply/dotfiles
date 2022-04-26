@@ -1,0 +1,2 @@
+-- TODO: Create statusline using:  "beauwilliams/statusline.lua"
+-- as inspiration.
